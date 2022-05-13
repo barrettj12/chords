@@ -59,6 +59,7 @@ func chordsHandler(w http.ResponseWriter, r *http.Request) {
 	id, err := strconv.Atoi(idstr)
 	if err != nil {
 		http.Error(w, fmt.Sprintf("invalid id %q", idstr), 400)
+		return
 	}
 
 	if r.Method == http.MethodGet {
