@@ -27,10 +27,21 @@ func main() {
 	http.HandleFunc("/search", searchHandler)    // search database for song
 
 	// Start listening on port 8080
-	log.Fatal(http.ListenAndServe(":8080", nil))
+	log.Printf("Server now running at http://localhost:8080")
+	log.Fatal(http.ListenAndServe(":8080", logHandler{}))
 }
 
-// HTTP HANDLERS
+// logHandler simply logs the incoming requests, then forwards them to
+// http.DefaultServeMux.
+type logHandler struct{}
+
+// ServeHTTP implements http.Handler.
+func (l logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	log.Printf("Request received: %s %s\n", r.Method, r.URL.Path)
+	http.DefaultServeMux.ServeHTTP(w, r)
+}
+
+// HTTP HANDLER FUNCTIONS
 
 // Handles requests to list artists in database.
 func artistsHandler(w http.ResponseWriter, r *http.Request) {
