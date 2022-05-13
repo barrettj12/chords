@@ -38,6 +38,16 @@ Sets the chords with id `<id>` to the value of the request body. **This method r
 
 Adds a new chord sheet to the database. **This method requires authentication**.
 
+The request body should be a JSON object of the following form:
+```
+{
+  "artist": ...
+  "album":  ...
+  "song":   ...
+  "chords": ...
+}
+```
+
 
 ### `GET /search?q=<query>`
 

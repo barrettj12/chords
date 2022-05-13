@@ -114,10 +114,14 @@ func newChordsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO: Check for authentication
-	// parse request `r`
-	// send to get function
-	// write output to `w`
-	http.Error(w, "create chords not yet implemented", http.StatusNotImplemented)
+	id, err := db.MakeChords(r.Body)
+	if err == nil {
+		w.WriteHeader(http.StatusCreated)
+		w.Header().Add("Location", fmt.Sprintf("/chords/%d", id))
+
+	} else {
+		serverError(err, "could not create chords", w)
+	}
 }
 
 // Handles requests to search the database for a song.
