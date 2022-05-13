@@ -24,21 +24,21 @@ Returns a JSON object containing all songs by `<artist>`, grouped by album:
 ```
 
 
-### `GET /view?id=<id>`
+### `GET /chords/<id>`
 
 Returns chords for the song with id `<id>`, as plain text.
 
-### `POST /update?id=<id>`
-*Should we use the POST or PUT method?*
+
+### `PUT /chords/<id>`
 
 Sets the chords with id `<id>` to the value of the request body. **This method requires authentication**.
 
-*Maybe we should also support getting/setting by specifying artist, album, song name, e.g.*
-```
-GET /view?artist=<artist>&song=<song>
-PUT /update?artist=<artist>&song=<song>
-```
+
+### `POST /chords`
+
+Adds a new chord sheet to the database. **This method requires authentication**.
+
 
 ### `GET /search?q=<query>`
 
-Searches the database for songs matching `<query>`, and returns a list of matching songs.
+Searches the database for songs matching `<query>`, and returns a JSON object containing matching songs and ids.
