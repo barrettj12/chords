@@ -1,9 +1,12 @@
 package dblayer
 
+import "io"
+
 type ChordsDB interface {
-	GetArtists() []string
-	GetSongs(string) Songs
-	GetChords(int) string
+	GetArtists() ([]string, error)
+	GetSongs(string) (Songs, error)
+	GetChords(int) (string, error)
+	SetChords(int, io.ReadCloser) error
 }
 
 // album maps  song -> id

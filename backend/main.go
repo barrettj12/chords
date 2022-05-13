@@ -37,7 +37,7 @@ type logHandler struct{}
 
 // ServeHTTP implements http.Handler.
 func (l logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Request received: %s %s\n", r.Method, r.URL.Path)
+	log.Printf("Request received: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
 	http.DefaultServeMux.ServeHTTP(w, r)
 }
 
@@ -48,7 +48,12 @@ func artistsHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := checkMethod(r.Method, []string{http.MethodGet}, w); !ok {
 		return
 	}
-	artists := db.GetArtists()
+
+	artists, err := db.GetArtists()
+	if err != nil {
+		serverError(err, "could not get artists", w)
+		return
+	}
 	writeJSON(w, artists)
 }
 
@@ -58,11 +63,16 @@ func songsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if !r.URL.Query().Has("artist") {
-		http.Error(w, `must provide query param "artist"`, 400)
+		http.Error(w, `must provide query param "artist"`, http.StatusBadRequest)
 		return
 	}
 	artist := r.URL.Query().Get("artist")
-	songs := db.GetSongs(artist)
+
+	songs, err := db.GetSongs(artist)
+	if err != nil {
+		serverError(err, "could not get songs", w)
+		return
+	}
 	writeJSON(w, songs)
 }
 
@@ -74,16 +84,27 @@ func chordsHandler(w http.ResponseWriter, r *http.Request) {
 	idstr := r.URL.Path[8:] // 8 = len("/chords/")
 	id, err := strconv.Atoi(idstr)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("invalid id %q", idstr), 400)
+		http.Error(w, fmt.Sprintf("invalid id %q", idstr), http.StatusBadRequest)
 		return
 	}
 
 	if r.Method == http.MethodGet {
-		chords := db.GetChords(id)
+		chords, err := db.GetChords(id)
+		if err != nil {
+			serverError(err, "could not get chords", w)
+			return
+		}
 		w.Write([]byte(chords))
+
 	} else if r.Method == http.MethodPut {
-		// Check for authentication
-		// should put return the updated chords?
+		// TODO: Check for authentication
+		err := db.SetChords(id, r.Body)
+		if err == nil {
+			// Success - nothing returned
+			w.WriteHeader(http.StatusNoContent)
+		} else {
+			serverError(err, "could not update chords", w)
+		}
 	}
 }
 
@@ -92,10 +113,11 @@ func newChordsHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := checkMethod(r.Method, []string{http.MethodPost}, w); !ok {
 		return
 	}
-	// Check for authentication
+	// TODO: Check for authentication
 	// parse request `r`
 	// send to get function
 	// write output to `w`
+	http.Error(w, "create chords not yet implemented", http.StatusNotImplemented)
 }
 
 // Handles requests to search the database for a song.
@@ -106,7 +128,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	// parse request `r`
 	// send to update function
 	// write output to `w`
-	w.Write([]byte("search not yet implemented"))
+	http.Error(w, "search not yet implemented", http.StatusNotImplemented)
 }
 
 // HELPER FUNCTIONS
@@ -126,21 +148,22 @@ func checkMethod(method string, allowed []string, w http.ResponseWriter) bool {
 		http.Error(w, fmt.Sprintf(
 			"method %s not allowed; allowed methods are %s",
 			method, strings.Join(allowed, ", "),
-		), 405)
+		), http.StatusMethodNotAllowed)
 	}
 	return allow
 }
 
-// serverError returns a 500 response.
-func serverError(w http.ResponseWriter) {
-	http.Error(w, "", 500)
+// serverError returns a 500 response, and logs the offending error.
+func serverError(e error, msg string, w http.ResponseWriter) {
+	log.Printf("ERROR: %v", e)
+	http.Error(w, msg, http.StatusInternalServerError)
 }
 
 // writeJSON marshals `data` to JSON and writes it to `w`.
 func writeJSON(w http.ResponseWriter, data interface{}) {
 	jData, err := json.Marshal(data)
 	if err != nil {
-		http.Error(w, "error marshalling to JSON", 500)
+		serverError(err, "error marshalling to JSON", w)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
