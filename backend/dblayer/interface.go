@@ -1,13 +1,15 @@
 package dblayer
 
-import "io"
+import (
+	"fmt"
+)
 
 type ChordsDB interface {
 	GetArtists() ([]string, error)
 	GetSongs(string) (Songs, error)
 	GetChords(int) (string, error)
-	SetChords(int, io.ReadCloser) error
-	MakeChords(io.ReadCloser) (int, error)
+	SetChords(int, []byte) error
+	MakeChords(NewChords) (int, error)
 }
 
 // album maps  song -> id
@@ -22,4 +24,18 @@ type NewChords struct {
 	Album  string `json:"name"`
 	Song   string `json:"song"`
 	Chords string `json:"chords"`
+}
+
+// DB ERRORS
+type fmtErr struct {
+	format string
+	args   []interface{}
+}
+
+func (e fmtErr) Error() string {
+	return fmt.Sprintf(e.format, e.args...)
+}
+
+func Errorf(format string, args ...interface{}) error {
+	return fmtErr{format, args}
 }

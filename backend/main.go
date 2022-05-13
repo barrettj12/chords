@@ -7,6 +7,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"strconv"
@@ -98,13 +99,18 @@ func chordsHandler(w http.ResponseWriter, r *http.Request) {
 
 	} else if r.Method == http.MethodPut {
 		// TODO: Check for authentication
-		err := db.SetChords(id, r.Body)
-		if err == nil {
-			// Success - nothing returned
-			w.WriteHeader(http.StatusNoContent)
-		} else {
+		chords, err := io.ReadAll(r.Body)
+		if err != nil {
 			serverError(err, "could not update chords", w)
+			return
 		}
+		err = db.SetChords(id, chords)
+		if err != nil {
+			serverError(err, "could not update chords", w)
+			return
+		}
+		// Success - nothing returned
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
@@ -114,14 +120,23 @@ func newChordsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	// TODO: Check for authentication
-	id, err := db.MakeChords(r.Body)
-	if err == nil {
-		w.WriteHeader(http.StatusCreated)
-		w.Header().Add("Location", fmt.Sprintf("/chords/%d", id))
 
-	} else {
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		serverError(err, "could not update chords", w)
+		return
+	}
+	// Unmarshal r.Body from JSON
+	nc := &dblayer.NewChords{}
+	json.Unmarshal(body, nc)
+
+	id, err := db.MakeChords(*nc)
+	if err != nil {
 		serverError(err, "could not create chords", w)
 	}
+
+	w.WriteHeader(http.StatusCreated)
+	w.Header().Add("Location", fmt.Sprintf("/chords/%d", id))
 }
 
 // Handles requests to search the database for a song.
