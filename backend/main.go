@@ -11,7 +11,12 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+
+	"github.com/barrettj12/jordys-chordies/backend/dblayer"
 )
+
+// Database
+var db dblayer.ChordsDB
 
 func main() {
 	// Register API endpoints
@@ -32,7 +37,7 @@ func artistsHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := checkMethod(r.Method, []string{http.MethodGet}, w); !ok {
 		return
 	}
-	artists := getArtists()
+	artists := db.GetArtists()
 	writeJSON(w, artists)
 }
 
@@ -46,7 +51,7 @@ func songsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	artist := r.URL.Query().Get("artist")
-	songs := getSongs(artist)
+	songs := db.GetSongs(artist)
 	writeJSON(w, songs)
 }
 
@@ -63,7 +68,7 @@ func chordsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if r.Method == http.MethodGet {
-		chords := getChords(id)
+		chords := db.GetChords(id)
 		w.Write([]byte(chords))
 	} else if r.Method == http.MethodPut {
 		// Check for authentication

@@ -4,7 +4,7 @@
 // communicating with the database, and converting between the database's
 // format and Go objects.
 
-package main
+package dblayer
 
 // getArtists retrieves the list of artists in the database.
 func getArtists() []string {
@@ -12,16 +12,10 @@ func getArtists() []string {
 	return []string{"artist1", "artist2", "artist3"}
 }
 
-// album maps  song -> id
-type album map[string]int
-
-// songs maps albumname -> album
-type songs map[string]album
-
 // getSongs retrieves all songs by artist `artist`, grouped by album.
-func getSongs(artist string) songs {
+func getSongs(artist string) Songs {
 	// TODO: implement
-	return songs{
+	return Songs{
 		"album1": {
 			"song1": 1,
 			"song2": 2,
