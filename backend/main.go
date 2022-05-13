@@ -5,9 +5,12 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
+	"strings"
 )
 
 func main() {
@@ -29,7 +32,7 @@ func artistsHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := checkMethod(r.Method, []string{http.MethodGet}, w); !ok {
 		return
 	}
-	artists = getArtists() // []string
+	artists := getArtists()
 	writeJSON(w, artists)
 }
 
@@ -43,7 +46,7 @@ func songsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	artist := r.URL.Query().Get("artist")
-	songs = getSongs(artist)
+	songs := getSongs(artist)
 	writeJSON(w, songs)
 }
 
@@ -52,11 +55,15 @@ func chordsHandler(w http.ResponseWriter, r *http.Request) {
 	if ok := checkMethod(r.Method, []string{http.MethodGet, http.MethodPut}, w); !ok {
 		return
 	}
-	id = r.URL.Path[8:] // 8 = len("/chords/")
+	idstr := r.URL.Path[8:] // 8 = len("/chords/")
+	id, err := strconv.Atoi(idstr)
+	if err != nil {
+		http.Error(w, fmt.Sprintf("invalid id %q", idstr), 400)
+	}
 
 	if r.Method == http.MethodGet {
-		chords = getChords(id)
-		w.WriteString(chords)
+		chords := getChords(id)
+		w.Write([]byte(chords))
 	} else if r.Method == http.MethodPut {
 		// Check for authentication
 		// should put return the updated chords?
@@ -82,7 +89,7 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 	// parse request `r`
 	// send to update function
 	// write output to `w`
-	w.Write("search not yet implemented")
+	w.Write([]byte("search not yet implemented"))
 }
 
 // HELPER FUNCTIONS
@@ -91,20 +98,20 @@ func searchHandler(w http.ResponseWriter, r *http.Request) {
 // (i.e. in the slice `allowed`). If not, it will also write
 // "405 Method Not Allowed" to `w`.
 func checkMethod(method string, allowed []string, w http.ResponseWriter) bool {
-	allowed := false
+	allow := false
 	for _, m := range allowed {
 		if method == m {
-			allowed = true
+			allow = true
 		}
 	}
 
-	if !allowed && w != nil {
+	if !allow && w != nil {
 		http.Error(w, fmt.Sprintf(
-				"method %s not allowed; allowed methods are %s",
-				method, strings.Join(allowed, ", ")
-			), 405)
+			"method %s not allowed; allowed methods are %s",
+			method, strings.Join(allowed, ", "),
+		), 405)
 	}
-	return allowed
+	return allow
 }
 
 // serverError returns a 500 response.

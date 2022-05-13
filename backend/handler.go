@@ -2,10 +2,9 @@
 
 // Defines a type Handler which
 
-
 // putting unnecessary effort in here
 
-package handler
+package main
 
 import "net/http"
 
@@ -36,19 +35,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Handle OPTIONS request
 	if r.Method == http.MethodOptions {
 		// Add allowed methods to Allow header
-		for _, method := range h.methods {
-			w.Header.Add("Allow", method)
-		}
-		return
+		// for _, method := range h.methods {
+		// 	w.Header.Add("Allow", method)
+		// }
+		// return
 	}
 
 	// Catch unallowed methods
 	if !h.allows(r.Method) {
-		http.
+		// http.
 	}
 
-
-//	method string -> methodHandler func(...) ...
+	//	method string -> methodHandler func(...) ...
 }
 
 // handleMethod returns the handler function for the provided method.
@@ -63,7 +61,7 @@ func (h *Handler) handleMethod(method string) interface{} {
 
 // methods gets the methods which are allowed for this handler.
 func (h *Handler) methods() []string {
-	methods = []string
+	methods := []string{}
 	for _, method := range METHODS {
 		if h.allows(method) {
 			methods = append(methods, method)
@@ -72,7 +70,7 @@ func (h *Handler) methods() []string {
 	return methods
 }
 
-// allows 
+// allows
 func (h *Handler) allows(method string) bool {
 	return h.handleMethod(method) != nil
 }
