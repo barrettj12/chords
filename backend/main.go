@@ -20,6 +20,9 @@ import (
 var db dblayer.ChordsDB
 
 func main() {
+	// Set up DB
+	db = &dblayer.TempDB{}
+
 	// Register API endpoints
 	http.HandleFunc("/artists", artistsHandler)  // list artists in database
 	http.HandleFunc("/songs", songsHandler)      // list songs by a given artist
@@ -38,7 +41,7 @@ type logHandler struct{}
 
 // ServeHTTP implements http.Handler.
 func (l logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	log.Printf("Request received: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
+	log.Printf("request: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
 	http.DefaultServeMux.ServeHTTP(w, r)
 }
 

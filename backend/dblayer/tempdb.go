@@ -25,9 +25,9 @@ func (t *TempDB) GetSongs(artist string) (Songs, error) {
 
 func (t *TempDB) GetChords(id int) (string, error) {
 	if id < 0 {
-		return "", Errorf("negative id %q invalid", id)
+		return "", Errorf("negative id %d invalid", id)
 	} else if id >= len(*t) {
-		return "", Errorf("no chords found for id %q", id)
+		return "", Errorf("no chords found for id %d", id)
 	}
 
 	return (*t)[id].Chords, nil
@@ -35,9 +35,9 @@ func (t *TempDB) GetChords(id int) (string, error) {
 
 func (t *TempDB) SetChords(id int, data []byte) error {
 	if id < 0 {
-		return Errorf("negative id %q invalid", id)
+		return Errorf("negative id %d invalid", id)
 	} else if id >= len(*t) {
-		return Errorf("no chords found for id %q", id)
+		return Errorf("no chords found for id %d", id)
 	}
 
 	(*t)[id].Chords = string(data)
