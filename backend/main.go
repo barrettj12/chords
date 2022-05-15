@@ -5,8 +5,8 @@
 package main
 
 import (
-	"github.com/barrettj12/jordys-chordies/backend/dblayer"
-	"github.com/barrettj12/jordys-chordies/backend/server"
+	"github.com/barrettj12/chords/backend/dblayer"
+	"github.com/barrettj12/chords/backend/server"
 )
 
 func main() {

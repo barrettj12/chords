@@ -1,3 +1,3 @@
-module github.com/barrettj12/jordys-chordies
+module github.com/barrettj12/chords
 
 go 1.18

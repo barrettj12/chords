@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/barrettj12/jordys-chordies/backend/dblayer"
+	"github.com/barrettj12/chords/backend/dblayer"
 )
 
 type Server struct {
