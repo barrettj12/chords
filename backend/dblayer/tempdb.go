@@ -1,5 +1,11 @@
-// a temporary (non-persistent) database stored in Go memory
-// good for testing
+// Jordy's Chordies - a web app for song chords
+//     https://github.com/barrettj12/chords
+// Copyright 2022, Jordan Barrett (@barrettj12)
+//     https://github.com/barrettj12
+// Licensed under the GNU AGPLv3.
+
+// backend/dblayer/tempdb.go
+// A temporary (non-persistent) database stored in Go memory. Good for testing
 
 package dblayer
 

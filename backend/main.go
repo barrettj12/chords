@@ -1,6 +1,11 @@
-// add license info here
+// Jordy's Chordies - a web app for song chords
+//     https://github.com/barrettj12/chords
+// Copyright 2022, Jordan Barrett (@barrettj12)
+//     https://github.com/barrettj12
+// Licensed under the GNU AGPLv3.
 
-// add description of file here
+// backend/main.go
+// Entry point for the backend
 
 package main
 

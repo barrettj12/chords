@@ -13,7 +13,8 @@ The app will interact with my own Chord Transposer API (coming soon) to provide 
 The structure of this repo is as follows:
 ```bash
 ├─ backend/       # the Go backend
-│  └─ dblayer/    # DB layer for backend
+│  ├─ dblayer/    # DB layer for backend
+│  └─ server/     # Backend HTTP server
 ├─ cli/           # command-line tool
 ├─ docs/          # the frontend
 └─ notes/         # Markdown specs/notes
@@ -30,3 +31,8 @@ Historically, I've stored these using a notes app like Google Keep. There are pl
 - It's difficult to share my chords with others - I have to manually add them as a "collaborator" to each note.
 
 Eventually, these concerns led me to decide that I'd be better off building my own website for my chords.
+
+
+## License
+
+This project is open-source, and licensed under the terms of the [GNU Affero General Public License](https://www.gnu.org/licenses/agpl-3.0.en.html).
