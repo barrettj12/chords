@@ -1,0 +1,17 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home</title>
+</head>
+<body>
+  This page will show the requested chord sheet
+  <p id="location"></p>
+  <script>
+    var url = window.location;
+    var para = document.getElementById("location");
+    para.innerHTML = url;
+  </script>
+</body>
+</html>
