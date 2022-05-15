@@ -9,9 +9,10 @@
   This page will show the requested chord sheet
   <p id="location"></p>
   <script>
-    var url = window.location;
-    var para = document.getElementById("location");
-    para.innerHTML = url;
+    const params = new URLSearchParams(document.location.search);
+    const para = document.getElementById("location");
+
+    para.innerHTML = `Artist: ${params.get("artist")}, Song: ${params.get("song")}`;
   </script>
 </body>
 </html>
