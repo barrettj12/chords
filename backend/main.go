@@ -16,6 +16,7 @@ import (
 
 func main() {
 	db := &dblayer.TempDB{}
+	dblayer.Fill(db)
 	s := server.New(db, ":8080")
 	s.Start()
 }

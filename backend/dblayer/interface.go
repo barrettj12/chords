@@ -14,6 +14,7 @@ package dblayer
 
 import (
 	"fmt"
+	"math/rand"
 )
 
 type ChordsDB interface {
@@ -22,6 +23,32 @@ type ChordsDB interface {
 	GetChords(int) (string, error)
 	SetChords(int, []byte) error
 	MakeChords(NewChords) (int, error)
+}
+
+// Fill fills a ChordsDB with some sample data - good for demonstration
+// and/or testing.
+func Fill(db ChordsDB) error {
+	for ltr := 'A'; ltr <= 'Z'; ltr++ {
+		numArtists := rand.Intn(4)
+		for art := 0; art <= numArtists; art++ {
+			numAlbums := rand.Intn(4)
+			for alb := 0; alb <= numAlbums; alb++ {
+				numSongs := rand.Intn(10)
+				for sng := 0; sng <= numSongs; sng++ {
+					_, err := db.MakeChords(NewChords{
+						Artist: fmt.Sprintf("%cartist%d", ltr, art),
+						Album:  fmt.Sprintf("album%d", alb),
+						Song:   fmt.Sprintf("song%d", alb),
+						Chords: "sample chords go here",
+					})
+					if err != nil {
+						return err
+					}
+				}
+			}
+		}
+	}
+	return nil
 }
 
 // album maps  song -> id
