@@ -40,16 +40,20 @@ func (s *Server) Start() {
 
 	// Start listening on port 8080
 	log.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.addr))
-	log.Fatal(http.ListenAndServe(s.addr, logHandler{}))
+	log.Fatal(http.ListenAndServe(s.addr, handler{}))
 }
 
-// logHandler simply logs the incoming requests, then forwards them to
-// http.DefaultServeMux.
-type logHandler struct{}
+// logHandler does some extra post-request / pre-response handling common
+// to all requests - see the ServeHTTP method below.
+type handler struct{}
 
 // ServeHTTP implements http.Handler.
-func (l logHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// Log request
 	log.Printf("request: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
+	// Add CORS header
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+
 	http.DefaultServeMux.ServeHTTP(w, r)
 }
 
