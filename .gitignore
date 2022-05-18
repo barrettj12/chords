@@ -1,2 +1,4 @@
 # ignore the CLI binary `chords`
 /chords
+# VS Code configuration
+/.vscode/
