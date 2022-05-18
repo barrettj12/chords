@@ -12,17 +12,20 @@ package dblayer
 type TempDB []NewChords
 
 func (t *TempDB) GetArtists() ([]string, error) {
-	artists := []string{}
+	artists := set[string]{}
 	for _, row := range *t {
-		artists = append(artists, row.Artist)
+		artists.add(row.Artist)
 	}
-	return artists, nil
+	return artists.toSlice(), nil
 }
 
 func (t *TempDB) GetSongs(artist string) (Songs, error) {
-	songs := Songs{}
+	songs := make(Songs)
 	for i, row := range *t {
 		if artist == row.Artist {
+			if songs[row.Album] == nil {
+				songs[row.Album] = make(album)
+			}
 			songs[row.Album][row.Song] = i
 		}
 	}
@@ -54,4 +57,21 @@ func (t *TempDB) MakeChords(nc NewChords) (int, error) {
 	id := len(*t)
 	*t = append(*t, nc)
 	return id, nil
+}
+
+// Set type
+type set[T comparable] map[T]struct{}
+
+func (s *set[T]) add(t T) {
+	if _, ok := (*s)[t]; !ok {
+		(*s)[t] = struct{}{}
+	}
+}
+
+func (s *set[T]) toSlice() []T {
+	slice := []T{}
+	for t := range *s {
+		slice = append(slice, t)
+	}
+	return slice
 }
