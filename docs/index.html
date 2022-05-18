@@ -13,15 +13,39 @@
   <meta charset="UTF-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home</title>
+  <title>Jordy's Chordies</title>
+
+   <!-- Stylesheets -->
+   <link href="https://unpkg.com/base-css-theme@1.1.3/base.css" rel="stylesheet">
+
+   <!-- Scripts -->
+   <script src="artists.js"></script>
+   <script src="songs.js"></script>
+   <script src="chords.js"></script>
 </head>
 <body>
-  This page will show all artists
-  <p id="location"></p>
-  <script>
-    const url = window.location;
-    const para = document.getElementById("location");
-    para.innerHTML = url;
-  </script>
+  <header>
+    <h1>Jordy's Chordies</h1>
+  </header>
+  <main>
+    <p id="location"></p>
+    <script>
+      SERVER_URL = "http://localhost:8080"
+
+      const params = new URLSearchParams(document.location.search);
+      if (!params.has("artist")) {
+        getArtists()
+      } else if (!params.has("song")) {
+        getSongs(params.get("artist"))
+      } else {
+        getChords(params.get("artist"), params.get("song"))
+      }
+    </script>
+  </main>
+  <footer>
+    jordan barrett, 2022
+    make donation
+    open source
+  </footer>
 </body>
 </html>
