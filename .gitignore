@@ -2,3 +2,5 @@
 /chords
 # VS Code configuration
 /.vscode/
+# GoLand configuration
+/.idea/
