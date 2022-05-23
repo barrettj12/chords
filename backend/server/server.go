@@ -15,6 +15,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 
@@ -24,10 +25,13 @@ import (
 type Server struct {
 	db   dblayer.ChordsDB
 	addr string
+	log  *log.Logger
 }
 
-func New(db dblayer.ChordsDB, addr string) Server {
-	return Server{db, addr}
+// New returns a new Server with the specified DB and address. `logFlags` is
+// as provided to log.New - see https://pkg.go.dev/log#pkg-constants
+func New(db dblayer.ChordsDB, addr string, logFlags int) Server {
+	return Server{db, addr, log.New(os.Stdout, "", logFlags)}
 }
 
 func (s *Server) Start() {
@@ -39,18 +43,20 @@ func (s *Server) Start() {
 	http.HandleFunc("/search", s.searchHandler)    // search database for song
 
 	// Start listening on port 8080
-	log.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.addr))
-	log.Fatal(http.ListenAndServe(s.addr, handler{}))
+	s.log.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.addr))
+	s.log.Fatal(http.ListenAndServe(s.addr, handler{s.log}))
 }
 
-// logHandler does some extra post-request / pre-response handling common
+// handler does some extra post-request / pre-response handling common
 // to all requests - see the ServeHTTP method below.
-type handler struct{}
+type handler struct {
+	log *log.Logger
+}
 
 // ServeHTTP implements http.Handler.
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Log request
-	log.Printf("request: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
+	h.log.Printf("request: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
 	// Add CORS header
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 
@@ -67,10 +73,10 @@ func (s *Server) artistsHandler(w http.ResponseWriter, r *http.Request) {
 
 	artists, err := s.db.GetArtists()
 	if err != nil {
-		serverError(err, "could not get artists", w)
+		s.serverError(err, "could not get artists", w)
 		return
 	}
-	writeJSON(w, artists)
+	s.writeJSON(w, artists)
 }
 
 // Handles requests to list songs by a given artist.
@@ -86,10 +92,10 @@ func (s *Server) songsHandler(w http.ResponseWriter, r *http.Request) {
 
 	songs, err := s.db.GetSongs(artist)
 	if err != nil {
-		serverError(err, "could not get songs", w)
+		s.serverError(err, "could not get songs", w)
 		return
 	}
-	writeJSON(w, songs)
+	s.writeJSON(w, songs)
 }
 
 // Handles requests to view/update a chord sheet.
@@ -107,7 +113,7 @@ func (s *Server) chordsHandler(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodGet {
 		chords, err := s.db.GetChords(id)
 		if err != nil {
-			serverError(err, "could not get chords", w)
+			s.serverError(err, "could not get chords", w)
 			return
 		}
 		w.Write([]byte(chords))
@@ -116,12 +122,12 @@ func (s *Server) chordsHandler(w http.ResponseWriter, r *http.Request) {
 		// TODO: Check for authentication
 		chords, err := io.ReadAll(r.Body)
 		if err != nil {
-			serverError(err, "could not update chords", w)
+			s.serverError(err, "could not update chords", w)
 			return
 		}
 		err = s.db.SetChords(id, chords)
 		if err != nil {
-			serverError(err, "could not update chords", w)
+			s.serverError(err, "could not update chords", w)
 			return
 		}
 		// Success - nothing returned
@@ -138,16 +144,19 @@ func (s *Server) newChordsHandler(w http.ResponseWriter, r *http.Request) {
 
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		serverError(err, "could not update chords", w)
+		s.serverError(err, "could not update chords", w)
 		return
 	}
 	// Unmarshal r.Body from JSON
 	nc := &dblayer.NewChords{}
-	json.Unmarshal(body, nc)
+	err = json.Unmarshal(body, nc)
+	if err != nil {
+		s.serverError(err, "error parsing json", w)
+	}
 
 	id, err := s.db.MakeChords(*nc)
 	if err != nil {
-		serverError(err, "could not create chords", w)
+		s.serverError(err, "could not create chords", w)
 	}
 
 	w.WriteHeader(http.StatusCreated)
@@ -188,16 +197,16 @@ func checkMethod(method string, allowed []string, w http.ResponseWriter) bool {
 }
 
 // serverError returns a 500 response, and logs the offending error.
-func serverError(e error, msg string, w http.ResponseWriter) {
-	log.Printf("ERROR: %v", e)
+func (s *Server) serverError(e error, msg string, w http.ResponseWriter) {
+	s.log.Printf("ERROR: %v", e)
 	http.Error(w, msg, http.StatusInternalServerError)
 }
 
 // writeJSON marshals `data` to JSON and writes it to `w`.
-func writeJSON(w http.ResponseWriter, data interface{}) {
+func (s *Server) writeJSON(w http.ResponseWriter, data interface{}) {
 	jData, err := json.Marshal(data)
 	if err != nil {
-		serverError(err, "error marshalling to JSON", w)
+		s.serverError(err, "error marshalling to JSON", w)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")

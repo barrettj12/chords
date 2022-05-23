@@ -12,11 +12,22 @@ package main
 import (
 	"github.com/barrettj12/chords/backend/dblayer"
 	"github.com/barrettj12/chords/backend/server"
+	"os"
+	"strconv"
 )
 
 func main() {
+	// Set up DB
 	db := &dblayer.TempDB{}
 	dblayer.Fill(db)
-	s := server.New(db, ":8080")
+
+	// Try to read logging flags from env:CHORDS_LOG
+	var flag int
+	flagstr, flagset := os.LookupEnv("CHORDS_LOG")
+	if flagset {
+		flag, _ = strconv.Atoi(flagstr)
+	}
+
+	s := server.New(db, ":8080", flag)
 	s.Start()
 }
