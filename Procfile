@@ -1,1 +1,1 @@
-web: go run ./backend
+web: bin/backend
