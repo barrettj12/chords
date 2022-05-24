@@ -10,6 +10,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/barrettj12/chords/backend/dblayer"
 	"github.com/barrettj12/chords/backend/server"
 	"os"
@@ -19,15 +20,20 @@ import (
 func main() {
 	// Set up DB
 	db := &dblayer.TempDB{}
-	dblayer.Fill(db)
+	_ = dblayer.Fill(db)
 
-	// Try to read logging flags from env:CHORDS_LOG
-	var flag int
-	flagstr, flagset := os.LookupEnv("CHORDS_LOG")
-	if flagset {
-		flag, _ = strconv.Atoi(flagstr)
+	// Read port from PORT environment variable
+	port := os.Getenv("PORT")
+	if _, err := strconv.Atoi(port); err != nil {
+		// Set default port value
+		fmt.Printf("Invalid port %q: listening on port 8080 instead\n", port)
+		port = "8080"
 	}
 
-	s := server.New(db, ":8080", flag)
+	// Try to read logging flags from LOG_FLAGS environment variable
+	// Invalid/unset values will just default to 0 (no flags)
+	flags, _ := strconv.Atoi(os.Getenv("LOG_FLAGS"))
+
+	s := server.New(db, ":"+port, flags)
 	s.Start()
 }
