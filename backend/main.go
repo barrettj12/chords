@@ -11,10 +11,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/barrettj12/chords/backend/dblayer"
-	"github.com/barrettj12/chords/backend/server"
 	"os"
 	"strconv"
+
+	"github.com/barrettj12/chords/backend/dblayer"
+	"github.com/barrettj12/chords/backend/server"
 )
 
 func main() {
