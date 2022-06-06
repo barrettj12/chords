@@ -59,6 +59,10 @@ func (t *TempDB) MakeChords(nc NewChords) (int, error) {
 	return id, nil
 }
 
+func (t *TempDB) Close() error {
+	return nil
+}
+
 // Set type
 type set[T comparable] map[T]struct{}
 

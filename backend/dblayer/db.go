@@ -23,6 +23,7 @@ type ChordsDB interface {
 	GetChords(int) (string, error)
 	SetChords(int, []byte) error
 	MakeChords(NewChords) (int, error)
+	Close() error
 }
 
 // Fill fills a ChordsDB with some sample data - good for demonstration
@@ -38,7 +39,7 @@ func Fill(db ChordsDB) error {
 					_, err := db.MakeChords(NewChords{
 						Artist: fmt.Sprintf("%cartist%d", ltr, art),
 						Album:  fmt.Sprintf("album%d", alb),
-						Song:   fmt.Sprintf("song%d", alb),
+						Song:   fmt.Sprintf("song%d", sng),
 						Chords: "sample chords go here",
 					})
 					if err != nil {
