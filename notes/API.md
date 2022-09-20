@@ -110,7 +110,7 @@ The updated chords for this song, in plain-text format.
 ### `SongMeta`
 Describes metadata for a song. The format is like this:
 
-```json
+```jsonc
 {
   // Unique ID assigned upon creation in DB
   "id":      1037,
