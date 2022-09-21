@@ -29,11 +29,11 @@ type ChordsDB interface {
 }
 
 type SongMeta struct {
-	id       string `json:"id"`
-	name     string `json:"name"`
-	artist   string `json:"artist"`
-	album    string `json:"album"`
-	trackNum int    `json:"id"`
+	ID       string `json:"id"`
+	Name     string `json:"name"`
+	Artist   string `json:"artist"`
+	Album    string `json:"album"`
+	TrackNum int    `json:"trackNum"`
 }
 
 type Chords []byte
@@ -48,12 +48,17 @@ func Fill(db ChordsDB) error {
 			for alb := 0; alb <= numAlbums; alb++ {
 				numSongs := rand.Intn(10)
 				for sng := 0; sng <= numSongs; sng++ {
-					_, err := db.NewSong(SongMeta{
-						name:     fmt.Sprintf("song%d", sng),
-						artist:   fmt.Sprintf("%cartist%d", ltr, art),
-						album:    fmt.Sprintf("album%d", alb),
-						trackNum: sng + 1,
+					meta, err := db.NewSong(SongMeta{
+						Name:     fmt.Sprintf("song%d", sng),
+						Artist:   fmt.Sprintf("%cartist%d", ltr, art),
+						Album:    fmt.Sprintf("album%d", alb),
+						TrackNum: sng + 1,
 					})
+					if err != nil {
+						return err
+					}
+
+					_, err = db.UpdateChords(meta.ID, []byte("sample chords go here"))
 					if err != nil {
 						return err
 					}

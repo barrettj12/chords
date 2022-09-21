@@ -16,29 +16,37 @@ type song struct {
 	Chords
 }
 
-type TempDB struct {
+type tempDB struct {
 	// map from id -> song
 	data   map[string]*song
 	nextID int
 }
 
-func (t *TempDB) GetArtists() ([]string, error) {
+// Return a correctly initialised tempDB.
+func NewTempDB() *tempDB {
+	return &tempDB{
+		make(map[string]*song),
+		1,
+	}
+}
+
+func (t *tempDB) GetArtists() ([]string, error) {
 	artists := set[string]{}
 	for _, row := range t.data {
-		artists.add(row.artist)
+		artists.add(row.Artist)
 	}
 	return artists.toSlice(), nil
 }
 
-func (t *TempDB) GetSongs(artist, id string) ([]SongMeta, error) {
+func (t *tempDB) GetSongs(artist, id string) ([]SongMeta, error) {
 	songs := []SongMeta{}
 
 	for _, s := range t.data {
 		matches := true
-		if artist != "" && s.artist != artist {
+		if artist != "" && s.Artist != artist {
 			matches = false
 		}
-		if id != "" && s.id != id {
+		if id != "" && s.ID != id {
 			matches = false
 		}
 		if matches {
@@ -49,32 +57,32 @@ func (t *TempDB) GetSongs(artist, id string) ([]SongMeta, error) {
 	return songs, nil
 }
 
-func (t *TempDB) NewSong(meta SongMeta) (SongMeta, error) {
+func (t *tempDB) NewSong(meta SongMeta) (SongMeta, error) {
 	idStr := fmt.Sprint(t.nextID)
-	meta.id = idStr
+	meta.ID = idStr
 	t.nextID++
 
 	t.data[idStr] = &song{meta, []byte{}}
 	return meta, nil
 }
 
-func (t *TempDB) UpdateSong(id string, meta SongMeta) (SongMeta, error) {
+func (t *tempDB) UpdateSong(id string, meta SongMeta) (SongMeta, error) {
 	song, ok := t.data[id]
 	if !ok {
 		return SongMeta{}, songNotFound(id)
 	}
 
-	meta.id = id
+	meta.ID = id
 	song.SongMeta = meta
 	return meta, nil
 }
 
-func (t *TempDB) DeleteSong(id string) error {
+func (t *tempDB) DeleteSong(id string) error {
 	delete(t.data, id)
 	return nil
 }
 
-func (t *TempDB) GetChords(id string) (Chords, error) {
+func (t *tempDB) GetChords(id string) (Chords, error) {
 	song, ok := t.data[id]
 	if !ok {
 		return Chords{}, songNotFound(id)
@@ -82,7 +90,7 @@ func (t *TempDB) GetChords(id string) (Chords, error) {
 	return song.Chords, nil
 }
 
-func (t *TempDB) UpdateChords(id string, chords Chords) (Chords, error) {
+func (t *tempDB) UpdateChords(id string, chords Chords) (Chords, error) {
 	song, ok := t.data[id]
 	if !ok {
 		return Chords{}, songNotFound(id)
