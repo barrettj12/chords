@@ -89,7 +89,12 @@ func (p *Postgres) GetChords(id int) (string, error) {
 }
 
 func (p *Postgres) SetChords(id int, data []byte) error {
-	return nil
+	_, err := p.db.Exec(`
+UPDATE chords
+SET data = $1
+WHERE id = $2;`,
+		string(data), id)
+	return err
 }
 
 func (p *Postgres) MakeChords(nc NewChords) (int, error) {

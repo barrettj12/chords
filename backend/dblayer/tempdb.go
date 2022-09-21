@@ -9,58 +9,86 @@
 
 package dblayer
 
-type TempDB []NewChords
+import "fmt"
+
+type song struct {
+	SongMeta
+	Chords
+}
+
+type TempDB struct {
+	// map from id -> song
+	data   map[string]*song
+	nextID int
+}
 
 func (t *TempDB) GetArtists() ([]string, error) {
 	artists := set[string]{}
-	for _, row := range *t {
-		artists.add(row.Artist)
+	for _, row := range t.data {
+		artists.add(row.artist)
 	}
 	return artists.toSlice(), nil
 }
 
-func (t *TempDB) GetSongs(artist string) (Songs, error) {
-	songs := make(Songs)
-	for i, row := range *t {
-		if artist == row.Artist {
-			if songs[row.Album] == nil {
-				songs[row.Album] = make(album)
-			}
-			songs[row.Album][row.Song] = i
+func (t *TempDB) GetSongs(artist, id string) ([]SongMeta, error) {
+	songs := []SongMeta{}
+
+	for _, s := range t.data {
+		matches := true
+		if artist != "" && s.artist != artist {
+			matches = false
+		}
+		if id != "" && s.id != id {
+			matches = false
+		}
+		if matches {
+			songs = append(songs, s.SongMeta)
 		}
 	}
+
 	return songs, nil
 }
 
-func (t *TempDB) GetChords(id int) (string, error) {
-	if id < 0 {
-		return "", Errorf("negative id %d invalid", id)
-	} else if id >= len(*t) {
-		return "", Errorf("no chords found for id %d", id)
-	}
+func (t *TempDB) NewSong(meta SongMeta) (SongMeta, error) {
+	idStr := fmt.Sprint(t.nextID)
+	meta.id = idStr
+	t.nextID++
 
-	return (*t)[id].Chords, nil
+	t.data[idStr] = &song{meta, []byte{}}
+	return meta, nil
 }
 
-func (t *TempDB) SetChords(id int, data []byte) error {
-	if id < 0 {
-		return Errorf("negative id %d invalid", id)
-	} else if id >= len(*t) {
-		return Errorf("no chords found for id %d", id)
+func (t *TempDB) UpdateSong(id string, meta SongMeta) (SongMeta, error) {
+	song, ok := t.data[id]
+	if !ok {
+		return SongMeta{}, songNotFound(id)
 	}
 
-	(*t)[id].Chords = string(data)
+	meta.id = id
+	song.SongMeta = meta
+	return meta, nil
+}
+
+func (t *TempDB) DeleteSong(id string) error {
+	delete(t.data, id)
 	return nil
 }
 
-func (t *TempDB) MakeChords(nc NewChords) (int, error) {
-	id := len(*t)
-	*t = append(*t, nc)
-	return id, nil
+func (t *TempDB) GetChords(id string) (Chords, error) {
+	song, ok := t.data[id]
+	if !ok {
+		return Chords{}, songNotFound(id)
+	}
+	return song.Chords, nil
 }
 
-func (t *TempDB) Close() error {
-	return nil
+func (t *TempDB) UpdateChords(id string, chords Chords) (Chords, error) {
+	song, ok := t.data[id]
+	if !ok {
+		return Chords{}, songNotFound(id)
+	}
+	song.Chords = chords
+	return chords, nil
 }
 
 // Set type
@@ -78,4 +106,9 @@ func (s *set[T]) toSlice() []T {
 		slice = append(slice, t)
 	}
 	return slice
+}
+
+// Helper functions
+func songNotFound(id string) error {
+	return fmt.Errorf("no song found for id %s", id)
 }

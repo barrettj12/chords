@@ -28,9 +28,29 @@
     <h1>Jordy's Chordies</h1>
   </header>
   <main>
+    <p id="serverinfo"></p>
     <p id="location"></p>
     <script>
-      SERVER_URL = "http://localhost:8080"
+      let SERVER_URL;
+      // (async function() {
+      //   const resp = await fetch("server")
+      //   if (resp.ok) {
+      //     // Use local server with specified address
+      //     SERVER_URL = await resp.text()
+      //   } else {
+      //     // Use production server
+      //     SERVER_URL = "https://barrettj12-chords.herokuapp.com"
+      //   }
+      //   
+      // })()
+      fetch("server").then(
+        resp => resp.text().then(
+          txt => SERVER_URL = txt
+        ),
+        _ => SERVER_URL = "https://barrettj12-chords.herokuapp.com"
+      )
+      serverinfo.innerText = `Server: ${SERVER_URL}`
+
 
       const params = new URLSearchParams(document.location.search);
       if (!params.has("artist")) {
