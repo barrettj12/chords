@@ -16,8 +16,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
-	"strings"
 
 	"github.com/barrettj12/chords/backend/dblayer"
 )
@@ -36,11 +34,9 @@ func New(db dblayer.ChordsDB, addr string, logFlags int) Server {
 
 func (s *Server) Start() {
 	// Register API endpoints
-	http.HandleFunc("/artists", s.artistsHandler)  // list artists in database
-	http.HandleFunc("/songs", s.songsHandler)      // list songs by a given artist
-	http.HandleFunc("/chords/", s.chordsHandler)   // view/update a chord sheet
-	http.HandleFunc("/chords", s.newChordsHandler) // create a chord sheet
-	http.HandleFunc("/search", s.searchHandler)    // search database for song
+	http.HandleFunc("/api/v0/artists", s.artistsHandler) // list artists in database
+	http.HandleFunc("/api/v0/songs", s.songsHandler)     // song metadata API
+	http.HandleFunc("/api/v0/chords", s.chordsHandler)   // view/update a chord sheet
 
 	// Start listening on port 8080
 	s.log.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.addr))
@@ -65,135 +61,198 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // HTTP HANDLER FUNCTIONS
 
-// Handles requests to list artists in database.
+// Handles requests to the /api/v0/artists endpoint.
 func (s *Server) artistsHandler(w http.ResponseWriter, r *http.Request) {
-	if ok := checkMethod(r.Method, []string{http.MethodGet}, w); !ok {
-		return
-	}
+	switch r.Method {
 
-	artists, err := s.db.GetArtists()
-	if err != nil {
-		s.serverError(err, "could not get artists", w)
-		return
+	case http.MethodGet:
+		artists, err := s.db.GetArtists()
+		if err == nil {
+			s.writeJSON(w, artists)
+		} else {
+			s.serverError(err, "could not get artists", w)
+		}
+
+	default:
+		http.Error(w, "", http.StatusMethodNotAllowed)
 	}
-	s.writeJSON(w, artists)
 }
 
-// Handles requests to list songs by a given artist.
+// Handles requests to the /api/v0/songs endpoint.
 func (s *Server) songsHandler(w http.ResponseWriter, r *http.Request) {
-	if ok := checkMethod(r.Method, []string{http.MethodGet}, w); !ok {
-		return
+	switch r.Method {
+	case http.MethodGet:
+		s.getSongs(w, r)
+	case http.MethodPost:
+		s.newSong(w, r)
+	case http.MethodPut:
+		s.updateSong(w, r)
+	case http.MethodDelete:
+		s.deleteSong(w, r)
+	default:
+		http.Error(w, "", http.StatusMethodNotAllowed)
 	}
-	if !r.URL.Query().Has("artist") {
-		http.Error(w, `must provide query param "artist"`, http.StatusBadRequest)
-		return
-	}
+}
+
+// Get metadata for songs matching query.
+func (s *Server) getSongs(w http.ResponseWriter, r *http.Request) {
 	artist := r.URL.Query().Get("artist")
+	id := r.URL.Query().Get("id")
+	// TODO: support search string parameter
+	songs, err := s.db.GetSongs(artist, id)
 
-	songs, err := s.db.GetSongs(artist)
-	if err != nil {
+	if err == nil {
+		s.writeJSON(w, songs)
+	} else {
 		s.serverError(err, "could not get songs", w)
-		return
 	}
-	s.writeJSON(w, songs)
 }
 
-// Handles requests to view/update a chord sheet.
-func (s *Server) chordsHandler(w http.ResponseWriter, r *http.Request) {
-	if ok := checkMethod(r.Method, []string{http.MethodGet, http.MethodPut}, w); !ok {
+// Add a new song to the database.
+func (s *Server) newSong(w http.ResponseWriter, r *http.Request) {
+	if !authorised(w, r) {
 		return
 	}
-	idstr := r.URL.Path[8:] // 8 = len("/chords/")
-	id, err := strconv.Atoi(idstr)
+
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
-		http.Error(w, fmt.Sprintf("invalid id %q", idstr), http.StatusBadRequest)
+		s.serverError(err, "io error", w)
+	}
+
+	song := &dblayer.SongMeta{}
+	err = json.Unmarshal(data, song)
+	if err != nil {
+		s.serverError(err, "parsing body", w)
+	}
+
+	newSong, err := s.db.NewSong(*song)
+	if err == nil {
+		s.writeJSON(w, newSong)
+	} else {
+		s.serverError(err, "creating new song", w)
+	}
+}
+
+// Update the metadata for a song in the database.
+func (s *Server) updateSong(w http.ResponseWriter, r *http.Request) {
+	if !authorised(w, r) {
+		return
+	}
+	id, ok := idParam(w, r)
+	if !ok {
 		return
 	}
 
-	if r.Method == http.MethodGet {
-		chords, err := s.db.GetChords(id)
-		if err != nil {
-			s.serverError(err, "could not get chords", w)
-			return
-		}
-		w.Write([]byte(chords))
+	data, err := io.ReadAll(r.Body)
+	if err != nil {
+		s.serverError(err, "io error", w)
+	}
 
-	} else if r.Method == http.MethodPut {
-		// TODO: Check for authentication
-		chords, err := io.ReadAll(r.Body)
-		if err != nil {
-			s.serverError(err, "could not update chords", w)
-			return
-		}
-		err = s.db.SetChords(id, chords)
-		if err != nil {
-			s.serverError(err, "could not update chords", w)
-			return
-		}
-		// Success - nothing returned
+	meta := &dblayer.SongMeta{}
+	err = json.Unmarshal(data, meta)
+	if err != nil {
+		s.serverError(err, "parsing body", w)
+	}
+
+	newMeta, err := s.db.UpdateSong(id, *meta)
+	if err == nil {
+		s.writeJSON(w, newMeta)
+	} else {
+		s.serverError(err, "updating song metadata", w)
+	}
+}
+
+// Delete a song from the database. The song's chords will also be deleted.
+func (s *Server) deleteSong(w http.ResponseWriter, r *http.Request) {
+	if !authorised(w, r) {
+		return
+	}
+	id, ok := idParam(w, r)
+	if !ok {
+		return
+	}
+
+	err := s.db.DeleteSong(id)
+	if err == nil {
 		w.WriteHeader(http.StatusNoContent)
+	} else {
+		s.serverError(err, "deleting song", w)
 	}
 }
 
-// Handles requests to create a chord sheet.
-func (s *Server) newChordsHandler(w http.ResponseWriter, r *http.Request) {
-	if ok := checkMethod(r.Method, []string{http.MethodPost}, w); !ok {
-		return
+// Handles requests to the /api/v0/chords endpoint.
+func (s *Server) chordsHandler(w http.ResponseWriter, r *http.Request) {
+	switch r.Method {
+	case http.MethodGet:
+		s.getChords(w, r)
+	case http.MethodPut:
+		s.updateChords(w, r)
+	default:
+		http.Error(w, "", http.StatusMethodNotAllowed)
 	}
-	// TODO: Check for authentication
-
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		s.serverError(err, "could not update chords", w)
-		return
-	}
-	// Unmarshal r.Body from JSON
-	nc := &dblayer.NewChords{}
-	err = json.Unmarshal(body, nc)
-	if err != nil {
-		s.serverError(err, "error parsing json", w)
-	}
-
-	id, err := s.db.MakeChords(*nc)
-	if err != nil {
-		s.serverError(err, "could not create chords", w)
-	}
-
-	w.WriteHeader(http.StatusCreated)
-	w.Header().Add("Location", fmt.Sprintf("/chords/%d", id))
 }
 
-// Handles requests to search the database for a song.
-func (s *Server) searchHandler(w http.ResponseWriter, r *http.Request) {
-	if ok := checkMethod(r.Method, []string{http.MethodGet}, w); !ok {
+// Get chords for a given song.
+func (s *Server) getChords(w http.ResponseWriter, r *http.Request) {
+	id, ok := idParam(w, r)
+	if !ok {
 		return
 	}
-	// parse request `r`
-	// send to update function
-	// write output to `w`
-	http.Error(w, "search not yet implemented", http.StatusNotImplemented)
+
+	chords, err := s.db.GetChords(id)
+	if err == nil {
+		w.Write(chords)
+	} else {
+		s.serverError(err, "getting chords", w)
+	}
+}
+
+// Update chords for a given song.
+func (s *Server) updateChords(w http.ResponseWriter, r *http.Request) {
+	if !authorised(w, r) {
+		return
+	}
+	id, ok := idParam(w, r)
+	if !ok {
+		return
+	}
+
+	chords, err := io.ReadAll(r.Body)
+	if err != nil {
+		s.serverError(err, "io error", w)
+	}
+
+	newChords, err := s.db.UpdateChords(id, chords)
+	if err == nil {
+		w.Write(newChords)
+	} else {
+		s.serverError(err, "updating chords", w)
+	}
 }
 
 // HELPER FUNCTIONS
 
-// Returns whether the attempted method `method` is allowed by this endpoint
-// (i.e. in the slice `allowed`). If not, it will also write
-// "405 Method Not Allowed" to `w`.
-func checkMethod(method string, allowed []string, w http.ResponseWriter) bool {
-	allow := false
-	for _, m := range allowed {
-		if method == m {
-			allow = true
-		}
-	}
+// For methods which write to the database, check we are authorised to do this.
+// If not, write an Unauthorised error to w.
+func authorised(w http.ResponseWriter, r *http.Request) bool {
+	// TODO: work out how to authorise
+	authd := true
 
-	if !allow && w != nil {
-		http.Error(w, fmt.Sprintf(
-			"method %s not allowed; allowed methods are %s",
-			method, strings.Join(allowed, ", "),
-		), http.StatusMethodNotAllowed)
+	if !authd {
+		http.Error(w, "", http.StatusUnauthorized)
 	}
-	return allow
+	return authd
+}
+
+// Check if the required ID param has been provided.
+// If not, write out an error
+// Return id and whether it was defined.
+func idParam(w http.ResponseWriter, r *http.Request) (string, bool) {
+	if !r.URL.Query().Has("id") {
+		http.Error(w, `required param "id" not provided`, http.StatusBadRequest)
+		return "", false
+	}
+	return r.URL.Query().Get("id"), true
 }
 
 // serverError returns a 500 response, and logs the offending error.
@@ -203,7 +262,7 @@ func (s *Server) serverError(e error, msg string, w http.ResponseWriter) {
 }
 
 // writeJSON marshals `data` to JSON and writes it to `w`.
-func (s *Server) writeJSON(w http.ResponseWriter, data interface{}) {
+func (s *Server) writeJSON(w http.ResponseWriter, data any) {
 	jData, err := json.Marshal(data)
 	if err != nil {
 		s.serverError(err, "error marshalling to JSON", w)
