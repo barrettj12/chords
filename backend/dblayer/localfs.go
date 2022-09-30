@@ -1,0 +1,179 @@
+package dblayer
+
+import (
+	"encoding/hex"
+	"encoding/json"
+	"errors"
+	"log"
+	"math/rand"
+	"os"
+	"path/filepath"
+)
+
+// Store data in an attached filesystem
+// The file structure is as follows:
+//   basedir
+//   ├─ [id1]
+//   │  ├─ meta.json
+//   │  └─ chords.txt
+//   ├─ [id2]
+//   │  ├─ meta.json
+//   │  └─ chords.txt
+//   ...
+
+type localfs struct {
+	basedir string
+	log     *log.Logger
+}
+
+func NewLocalfs(basedir string, logger *log.Logger) ChordsDB {
+	return &localfs{basedir, logger}
+}
+
+func (l *localfs) GetArtists() ([]string, error) {
+	artists := set[string]{}
+	dirs, err := os.ReadDir(l.basedir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, d := range dirs {
+		metaPath := filepath.Join(l.basedir, d.Name(), "meta.json")
+		data, err := os.ReadFile(metaPath)
+		if err != nil {
+			log.Printf("WARNING reading file %s: %v", metaPath, err)
+			continue
+		}
+
+		meta := &SongMeta{}
+		err = json.Unmarshal(data, meta)
+		if err != nil {
+			log.Printf("WARNING unmarshaling json: %v", err)
+			continue
+		}
+		artists.add(meta.Artist)
+	}
+
+	return artists.toSlice(), nil
+}
+
+func (l *localfs) GetSongs(artist, id string) ([]SongMeta, error) {
+	songs := []SongMeta{}
+	dirs, err := os.ReadDir(l.basedir)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, d := range dirs {
+		if id != "" && d.Name() != id {
+			continue
+		}
+
+		metaPath := filepath.Join(l.basedir, d.Name(), "meta.json")
+		data, err := os.ReadFile(metaPath)
+		if err != nil {
+			log.Printf("WARNING reading file %s: %v", metaPath, err)
+			continue
+		}
+
+		meta := &SongMeta{}
+		err = json.Unmarshal(data, meta)
+		if err != nil {
+			log.Printf("WARNING unmarshaling json: %v", err)
+			continue
+		}
+
+		// Check if artist matches
+		if artist != "" && meta.Artist != artist {
+			continue
+		}
+		songs = append(songs, *meta)
+	}
+
+	return songs, nil
+}
+
+func (l *localfs) NewSong(meta SongMeta) (SongMeta, error) {
+	id := l.getNewID()
+	meta.ID = id
+
+	// Create new dir
+	newDir := filepath.Join(l.basedir, id)
+	err := os.Mkdir(newDir, os.ModePerm)
+	if err != nil {
+		return SongMeta{}, err
+	}
+
+	// Create meta.json
+	data, err := json.Marshal(meta)
+	if err != nil {
+		return SongMeta{}, err
+	}
+	err = os.WriteFile(filepath.Join(newDir, "meta.json"), data, os.ModePerm)
+	if err != nil {
+		return SongMeta{}, err
+	}
+
+	// Create empty chords.txt
+	err = os.WriteFile(filepath.Join(newDir, "chords.txt"), []byte{}, os.ModePerm)
+	if err != nil {
+		return SongMeta{}, err
+	}
+
+	return meta, nil
+}
+
+func (l *localfs) getNewID() string {
+	for {
+		b := make([]byte, 4)
+		rand.Read(b)
+		id := hex.EncodeToString(b)
+
+		// Check this ID is not in use
+		if _, err := os.Stat(filepath.Join(l.basedir, id)); errors.Is(err, os.ErrNotExist) {
+			return id
+		}
+	}
+}
+
+func (l *localfs) UpdateSong(id string, meta SongMeta) (SongMeta, error) {
+	dir := filepath.Join(l.basedir, id)
+	// Check id exists in database
+	if _, err := os.Stat(dir); errors.Is(err, os.ErrNotExist) {
+		return SongMeta{}, err
+	}
+
+	meta.ID = id
+	data, err := json.Marshal(meta)
+	if err != nil {
+		return SongMeta{}, err
+	}
+	err = os.WriteFile(filepath.Join(dir, "meta.json"), data, os.ModePerm)
+	if err != nil {
+		return SongMeta{}, err
+	}
+
+	return meta, nil
+}
+
+func (l *localfs) DeleteSong(id string) error {
+	dir := filepath.Join(l.basedir, id)
+	err := os.RemoveAll(dir)
+
+	if errors.Is(err, os.ErrNotExist) {
+		return nil // no-op
+	} else {
+		return err
+	}
+}
+
+func (l *localfs) GetChords(id string) (Chords, error) {
+	path := filepath.Join(l.basedir, id, "chords.txt")
+	return os.ReadFile(path)
+}
+
+func (l *localfs) UpdateChords(id string, chords Chords) (Chords, error) {
+	path := filepath.Join(l.basedir, id, "chords.txt")
+	os.WriteFile(path, chords, os.ModePerm)
+	return os.ReadFile(path)
+}

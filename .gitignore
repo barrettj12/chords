@@ -4,3 +4,5 @@
 /.vscode/
 # GoLand configuration
 /.idea/
+# Localfs database
+/data/
