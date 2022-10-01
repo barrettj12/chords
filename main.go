@@ -41,15 +41,15 @@ func main() {
 	} else if dbURL == "" {
 		fmt.Println("Using temporary local database")
 		db = dblayer.NewTempDB()
+		err := dblayer.Fill(db)
+		if err != nil {
+			panic(err)
+		}
 	} else {
 		fmt.Printf("Using local filesystem database at %s\n", dbURL)
 		db = dblayer.NewLocalfs(dbURL, logger)
 	}
 	// defer db.Close()
-	// err := dblayer.Fill(db)
-	// if err != nil {
-	//   panic(err)
-	// }
 
 	// Read port from PORT environment variable
 	port := os.Getenv("PORT")
@@ -59,6 +59,6 @@ func main() {
 		port = "8080"
 	}
 
-	s := server.New(db, ":"+port, flags)
+	s := server.New(db, ":"+port, logger)
 	s.Start()
 }

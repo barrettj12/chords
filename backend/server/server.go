@@ -15,32 +15,48 @@ import (
 	"io"
 	"log"
 	"net/http"
-	"os"
 
 	"github.com/barrettj12/chords/backend/dblayer"
 )
 
 type Server struct {
-	db   dblayer.ChordsDB
-	addr string
-	log  *log.Logger
+	addr   string
+	logger *log.Logger
+
+	api      ChordsAPI
+	frontend Frontend
+}
+
+type ChordsAPI struct {
+	db     dblayer.ChordsDB
+	logger *log.Logger
 }
 
 // New returns a new Server with the specified DB and address. `logFlags` is
 // as provided to log.New - see https://pkg.go.dev/log#pkg-constants
-func New(db dblayer.ChordsDB, addr string, logFlags int) Server {
-	return Server{db, addr, log.New(os.Stdout, "", logFlags)}
+func New(db dblayer.ChordsDB, addr string, logger *log.Logger) Server {
+	return Server{
+		addr,
+		logger,
+		ChordsAPI{db, logger},
+		Frontend{fmt.Sprintf("http://localhost%s", addr)},
+	}
 }
 
 func (s *Server) Start() {
 	// Register API endpoints
-	http.HandleFunc("/api/v0/artists", s.artistsHandler) // list artists in database
-	http.HandleFunc("/api/v0/songs", s.songsHandler)     // song metadata API
-	http.HandleFunc("/api/v0/chords", s.chordsHandler)   // view/update a chord sheet
+	http.HandleFunc("/api/v0/artists", s.api.artistsHandler) // list artists in database
+	http.HandleFunc("/api/v0/songs", s.api.songsHandler)     // song metadata API
+	http.HandleFunc("/api/v0/chords", s.api.chordsHandler)   // view/update a chord sheet
+
+	// Test frontend endpoints
+	http.HandleFunc("/b/artists", s.frontend.artistsHandler)
+	http.HandleFunc("/b/songs", s.frontend.songsHandler)
+	http.HandleFunc("/b/chords", s.frontend.chordsHandler)
 
 	// Start listening on port 8080
-	s.log.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.addr))
-	s.log.Fatal(http.ListenAndServe(s.addr, handler{s.log}))
+	s.logger.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.addr))
+	s.logger.Fatal(http.ListenAndServe(s.addr, handler{s.logger}))
 }
 
 // handler does some extra post-request / pre-response handling common
@@ -62,7 +78,7 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 // HTTP HANDLER FUNCTIONS
 
 // Handles requests to the /api/v0/artists endpoint.
-func (s *Server) artistsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 
 	case http.MethodGet:
@@ -79,7 +95,7 @@ func (s *Server) artistsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Handles requests to the /api/v0/songs endpoint.
-func (s *Server) songsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) songsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		s.getSongs(w, r)
@@ -95,7 +111,7 @@ func (s *Server) songsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get metadata for songs matching query.
-func (s *Server) getSongs(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) getSongs(w http.ResponseWriter, r *http.Request) {
 	artist := r.URL.Query().Get("artist")
 	id := r.URL.Query().Get("id")
 	// TODO: support search string parameter
@@ -109,7 +125,7 @@ func (s *Server) getSongs(w http.ResponseWriter, r *http.Request) {
 }
 
 // Add a new song to the database.
-func (s *Server) newSong(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) newSong(w http.ResponseWriter, r *http.Request) {
 	if !authorised(w, r) {
 		return
 	}
@@ -134,7 +150,7 @@ func (s *Server) newSong(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update the metadata for a song in the database.
-func (s *Server) updateSong(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) updateSong(w http.ResponseWriter, r *http.Request) {
 	if !authorised(w, r) {
 		return
 	}
@@ -163,7 +179,7 @@ func (s *Server) updateSong(w http.ResponseWriter, r *http.Request) {
 }
 
 // Delete a song from the database. The song's chords will also be deleted.
-func (s *Server) deleteSong(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) deleteSong(w http.ResponseWriter, r *http.Request) {
 	if !authorised(w, r) {
 		return
 	}
@@ -181,7 +197,7 @@ func (s *Server) deleteSong(w http.ResponseWriter, r *http.Request) {
 }
 
 // Handles requests to the /api/v0/chords endpoint.
-func (s *Server) chordsHandler(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) chordsHandler(w http.ResponseWriter, r *http.Request) {
 	switch r.Method {
 	case http.MethodGet:
 		s.getChords(w, r)
@@ -193,7 +209,7 @@ func (s *Server) chordsHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 // Get chords for a given song.
-func (s *Server) getChords(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) getChords(w http.ResponseWriter, r *http.Request) {
 	id, ok := idParam(w, r)
 	if !ok {
 		return
@@ -208,7 +224,7 @@ func (s *Server) getChords(w http.ResponseWriter, r *http.Request) {
 }
 
 // Update chords for a given song.
-func (s *Server) updateChords(w http.ResponseWriter, r *http.Request) {
+func (s *ChordsAPI) updateChords(w http.ResponseWriter, r *http.Request) {
 	if !authorised(w, r) {
 		return
 	}
@@ -256,13 +272,13 @@ func idParam(w http.ResponseWriter, r *http.Request) (string, bool) {
 }
 
 // serverError returns a 500 response, and logs the offending error.
-func (s *Server) serverError(e error, msg string, w http.ResponseWriter) {
-	s.log.Printf("ERROR: %v", e)
+func (s *ChordsAPI) serverError(e error, msg string, w http.ResponseWriter) {
+	s.logger.Printf("ERROR: %v", e)
 	http.Error(w, msg, http.StatusInternalServerError)
 }
 
 // writeJSON marshals `data` to JSON and writes it to `w`.
-func (s *Server) writeJSON(w http.ResponseWriter, data any) {
+func (s *ChordsAPI) writeJSON(w http.ResponseWriter, data any) {
 	jData, err := json.Marshal(data)
 	if err != nil {
 		s.serverError(err, "error marshalling to JSON", w)
