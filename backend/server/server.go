@@ -53,6 +53,7 @@ func (s *Server) Start() {
 	http.HandleFunc("/b/artists", s.frontend.artistsHandler)
 	http.HandleFunc("/b/songs", s.frontend.songsHandler)
 	http.HandleFunc("/b/chords", s.frontend.chordsHandler)
+	http.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
 
 	// Start listening on port 8080
 	s.logger.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.addr))
