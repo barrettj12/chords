@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"sort"
 
 	"github.com/barrettj12/chords/backend/dblayer"
 )
@@ -19,6 +20,7 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	data, _ := io.ReadAll(resp.Body)
 	artists := []string{}
 	json.Unmarshal(data, &artists)
+	sort.Slice(artists, func(i, j int) bool { return artists[i] < artists[j] })
 
 	w.Write([]byte("<h1>Artists</h1>"))
 	for _, artist := range artists {
@@ -50,6 +52,10 @@ func (f *Frontend) chordsHandler(w http.ResponseWriter, r *http.Request) {
 	data, _ := io.ReadAll(metaResp.Body)
 	songs := []dblayer.SongMeta{}
 	json.Unmarshal(data, &songs)
+	if len(songs) == 0 {
+		http.NotFound(w, r)
+		return
+	}
 
 	chordsResp, _ := http.Get(fmt.Sprintf("%s/api/v0/chords?id=%s", f.apiURL, url.QueryEscape(id)))
 	chords, _ := io.ReadAll(chordsResp.Body)
