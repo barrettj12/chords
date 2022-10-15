@@ -94,11 +94,10 @@ func (l *localfs) GetSongs(artist, id string) ([]SongMeta, error) {
 }
 
 func (l *localfs) NewSong(meta SongMeta) (SongMeta, error) {
-	id := l.getNewID()
-	meta.ID = id
+	meta.ID = l.checkID(meta.ID)
 
 	// Create new dir
-	newDir := filepath.Join(l.basedir, id)
+	newDir := filepath.Join(l.basedir, meta.ID)
 	err := os.Mkdir(newDir, os.ModePerm)
 	if err != nil {
 		return SongMeta{}, err
@@ -121,6 +120,15 @@ func (l *localfs) NewSong(meta SongMeta) (SongMeta, error) {
 	}
 
 	return meta, nil
+}
+
+// Checks if the give ID is in use already, and returns it if not.
+// If the ID is use, return a fresh ID.
+func (l *localfs) checkID(id string) string {
+	if _, err := os.Stat(filepath.Join(l.basedir, id)); errors.Is(err, os.ErrNotExist) {
+		return id
+	}
+	return l.getNewID()
 }
 
 func (l *localfs) getNewID() string {
