@@ -14,9 +14,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/barrettj12/chords/backend/dblayer"
 )
 
 var SERVER_URL = "http://localhost:8080"
@@ -32,6 +35,8 @@ func main() {
 		push(args)
 	case "backup":
 		backup(args)
+	case "sync":
+		sync(args)
 	default:
 		fmt.Printf("unknown command %q\n", cmd)
 		os.Exit(1)
@@ -71,6 +76,61 @@ func backup(args []string) {
 	fmt.Println("backing up", args)
 }
 
+// sync copies chords from local db to remote
+//
+//	sync <path/to/local/db> <server/url>
+func sync(args []string) {
+	db := dblayer.NewLocalfs(args[0], log.Default())
+	server := args[1]
+
+	songs, err := db.GetSongs("", "")
+	if err != nil {
+		panic(err)
+	}
+
+	for _, localSong := range songs {
+		// TODO: factor out this logic into common "client" package
+		resp, err := http.Get(fmt.Sprintf("%s/api/v0/songs?id=%s", server, localSong.ID))
+		if err != nil {
+			panic(err)
+		}
+		data, err := io.ReadAll(resp.Body)
+		if err != nil {
+			panic(err)
+		}
+		res := []dblayer.SongMeta{}
+		err = json.Unmarshal(data, &res)
+		if err != nil {
+			panic(err)
+		}
+
+		if len(res) == 0 {
+			// Song doesn't exist in remote DB
+			body, err := json.Marshal(localSong)
+			if err != nil {
+				panic(err)
+			}
+			_, err = http.Post(server+"/api/v0/songs", "application/json", bytes.NewReader(body))
+			if err != nil {
+				panic(err)
+			}
+		} else {
+			// Update song in remote DB
+		}
+
+		// Sync chords
+		chords, err := db.GetChords(localSong.ID)
+		if err != nil {
+			panic(err)
+		}
+		fmt.Printf("%s\n", chords)
+		_, err = httpPut(server+"/api/v0/chords?id="+localSong.ID, "text/plain", bytes.NewReader(chords))
+		if err != nil {
+			panic(err)
+		}
+	}
+}
+
 // HELPER FUNCTIONS
 
 // prompt prints the question to stdout, then reads a line from the provided
@@ -79,4 +139,13 @@ func prompt(s *bufio.Scanner, q string, out *string) {
 	fmt.Print(q)
 	s.Scan()
 	*out = s.Text()
+}
+
+func httpPut(url, contentType string, body io.Reader) (resp *http.Response, err error) {
+	req, err := http.NewRequest(http.MethodPut, url, body)
+	if err != nil {
+		return nil, err
+	}
+	req.Header.Set("Content-Type", contentType)
+	return http.DefaultClient.Do(req)
 }
