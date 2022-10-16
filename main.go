@@ -59,6 +59,16 @@ func main() {
 		port = "8080"
 	}
 
-	s := server.New(db, ":"+port, logger)
+	// Read authorisation key from env
+	authKey := os.Getenv("AUTH_KEY")
+	if authKey == "" {
+		// Try read from file
+		data, err := os.ReadFile("auth_key")
+		if err == nil {
+			authKey = string(data)
+		}
+	}
+
+	s := server.New(db, ":"+port, logger, authKey)
 	s.Start()
 }

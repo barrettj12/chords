@@ -6,3 +6,5 @@
 /.idea/
 # Localfs database
 /data/
+# Authorisation key
+/auth_key

@@ -28,17 +28,18 @@ type Server struct {
 }
 
 type ChordsAPI struct {
-	db     dblayer.ChordsDB
-	logger *log.Logger
+	db      dblayer.ChordsDB
+	logger  *log.Logger
+	authKey string
 }
 
 // New returns a new Server with the specified DB and address. `logFlags` is
 // as provided to log.New - see https://pkg.go.dev/log#pkg-constants
-func New(db dblayer.ChordsDB, addr string, logger *log.Logger) Server {
+func New(db dblayer.ChordsDB, addr string, logger *log.Logger, authKey string) Server {
 	return Server{
 		addr,
 		logger,
-		ChordsAPI{db, logger},
+		ChordsAPI{db, logger, authKey},
 		Frontend{fmt.Sprintf("http://localhost%s", addr)},
 	}
 }
@@ -127,7 +128,7 @@ func (s *ChordsAPI) getSongs(w http.ResponseWriter, r *http.Request) {
 
 // Add a new song to the database.
 func (s *ChordsAPI) newSong(w http.ResponseWriter, r *http.Request) {
-	if !authorised(w, r) {
+	if !s.authorised(w, r) {
 		return
 	}
 
@@ -152,7 +153,7 @@ func (s *ChordsAPI) newSong(w http.ResponseWriter, r *http.Request) {
 
 // Update the metadata for a song in the database.
 func (s *ChordsAPI) updateSong(w http.ResponseWriter, r *http.Request) {
-	if !authorised(w, r) {
+	if !s.authorised(w, r) {
 		return
 	}
 	id, ok := idParam(w, r)
@@ -181,7 +182,7 @@ func (s *ChordsAPI) updateSong(w http.ResponseWriter, r *http.Request) {
 
 // Delete a song from the database. The song's chords will also be deleted.
 func (s *ChordsAPI) deleteSong(w http.ResponseWriter, r *http.Request) {
-	if !authorised(w, r) {
+	if !s.authorised(w, r) {
 		return
 	}
 	id, ok := idParam(w, r)
@@ -226,7 +227,7 @@ func (s *ChordsAPI) getChords(w http.ResponseWriter, r *http.Request) {
 
 // Update chords for a given song.
 func (s *ChordsAPI) updateChords(w http.ResponseWriter, r *http.Request) {
-	if !authorised(w, r) {
+	if !s.authorised(w, r) {
 		return
 	}
 	id, ok := idParam(w, r)
@@ -251,9 +252,10 @@ func (s *ChordsAPI) updateChords(w http.ResponseWriter, r *http.Request) {
 
 // For methods which write to the database, check we are authorised to do this.
 // If not, write an Unauthorised error to w.
-func authorised(w http.ResponseWriter, r *http.Request) bool {
+func (s *ChordsAPI) authorised(w http.ResponseWriter, r *http.Request) bool {
 	// TODO: work out how to authorise
-	authd := true
+	key := r.Header.Get("Authorization")
+	authd := key == s.authKey
 
 	if !authd {
 		http.Error(w, "", http.StatusUnauthorized)
