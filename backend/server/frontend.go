@@ -2,6 +2,7 @@ package server
 
 import (
 	"fmt"
+	"html/template"
 	"net/http"
 	"sort"
 
@@ -58,6 +59,67 @@ func (f *Frontend) chordsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	chords, _ := f.client.GetChords(id)
 
-	w.Write([]byte(fmt.Sprintf("<h1>%s by %s</h1>", songs[0].Name, songs[0].Artist)))
-	w.Write([]byte(fmt.Sprintf("<pre>%s</pre>", chords)))
+	type pageData struct{ SongTitle, Artist, Chords string }
+	p := pageData{songs[0].Name, songs[0].Artist, string(chords)}
+	t := template.Must(template.New("page").Parse(CHORDS_TEMPLATE))
+	t.Execute(w, p)
 }
+
+const CHORDS_TEMPLATE = `
+<html>
+  <head>
+	  <script type="module" src="https://barrettj12.github.io/chord-transposer/js/Main.js"></script>
+	</head>
+	<body>
+	  <h1>
+		  {{.SongTitle}} by {{.Artist}}
+		</h1>
+	  <pre id="chords">{{.Chords}}</pre>
+
+		<b>Transpose:<b>
+		<button id="minus">−</button>
+    <input id="semitones" value="0" readonly="" style="text-align: center; width: 4.5ch;">
+    <button id="plus">+</button>
+		<button id="reset">Reset</button>
+
+		<script type="module">
+        // Import JS backend
+        import { transpose } from "https://barrettj12.github.io/chord-transposer/js/Main.js";
+
+        // Get interactive elements on the page
+        let chords = document.getElementById("chords");
+        let plus = document.getElementById("plus");
+        let minus = document.getElementById("minus");
+        let semitones = document.getElementById("semitones");
+        let reset = document.getElementById("reset");
+
+				let originalChords = chords.innerHTML;
+
+        // Add event listeners
+        reset.addEventListener("click", resetTranspose);
+        plus.addEventListener("click", tuneUp);
+        minus.addEventListener("click", tuneDown);
+      
+        // Updates the textarea
+        function processChords() {
+          chords.innerHTML = transpose(originalChords, parseInt(semitones.value));
+        }
+
+        function resetTranspose() {
+          semitones.value = 0;
+          processChords();
+        }
+
+        function tuneUp() {
+          semitones.value = (parseInt(semitones.value) + 1).toString();
+          processChords();
+        }
+
+        function tuneDown() {
+          semitones.value = (parseInt(semitones.value) - 1).toString();
+          processChords();
+        }
+      </script> 
+  </body>
+</html>
+`
