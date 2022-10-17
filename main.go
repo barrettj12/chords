@@ -14,7 +14,6 @@ import (
 	"log"
 	"os"
 	"strconv"
-	"strings"
 
 	"github.com/barrettj12/chords/backend/dblayer"
 	"github.com/barrettj12/chords/backend/server"
@@ -31,23 +30,9 @@ func main() {
 	// Set up DB
 	var db dblayer.ChordsDB
 	dbURL := os.Getenv("DATABASE_URL")
-	if strings.HasPrefix(dbURL, "postgres") {
-		fmt.Printf("Using Postgres database at %s\n", dbURL)
-		var err error
-		db, err = dblayer.NewPostgres(dbURL)
-		if err != nil {
-			panic(err)
-		}
-	} else if dbURL == "" {
-		fmt.Println("Using temporary local database")
-		db = dblayer.NewTempDB()
-		err := dblayer.Fill(db)
-		if err != nil {
-			panic(err)
-		}
-	} else {
-		fmt.Printf("Using local filesystem database at %s\n", dbURL)
-		db = dblayer.NewLocalfs(dbURL, logger)
+	db, err := dblayer.GetDB(dbURL, logger)
+	if err != nil {
+		panic(err)
 	}
 	// defer db.Close()
 
@@ -69,6 +54,9 @@ func main() {
 		}
 	}
 
-	s := server.New(db, ":"+port, logger, authKey)
+	s, err := server.New(db, ":"+port, logger, authKey)
+	if err != nil {
+		panic(err)
+	}
 	s.Start()
 }

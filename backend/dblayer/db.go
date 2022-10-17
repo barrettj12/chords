@@ -14,7 +14,9 @@ package dblayer
 
 import (
 	"fmt"
+	"log"
 	"math/rand"
+	"strings"
 )
 
 type ChordsDB interface {
@@ -26,6 +28,20 @@ type ChordsDB interface {
 	GetChords(id string) (Chords, error)
 	UpdateChords(id string, chords Chords) (Chords, error)
 	// Close() error
+}
+
+func GetDB(url string, logger *log.Logger) (ChordsDB, error) {
+	if strings.HasPrefix(url, "postgres") {
+		logger.Printf("Using Postgres database at %s\n", url)
+		return NewPostgres(url)
+	} else if url == "" {
+		logger.Println("Using temporary local database")
+		db := NewTempDB()
+		return db, Fill(db)
+	} else {
+		logger.Printf("Using local filesystem database at %s\n", url)
+		return NewLocalfs(url, logger), nil
+	}
 }
 
 type SongMeta struct {

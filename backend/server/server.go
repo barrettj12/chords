@@ -24,7 +24,7 @@ type Server struct {
 	logger *log.Logger
 
 	api      ChordsAPI
-	frontend Frontend
+	frontend *Frontend
 }
 
 type ChordsAPI struct {
@@ -35,13 +35,18 @@ type ChordsAPI struct {
 
 // New returns a new Server with the specified DB and address. `logFlags` is
 // as provided to log.New - see https://pkg.go.dev/log#pkg-constants
-func New(db dblayer.ChordsDB, addr string, logger *log.Logger, authKey string) Server {
-	return Server{
+func New(db dblayer.ChordsDB, addr string, logger *log.Logger, authKey string) (*Server, error) {
+	frontend, err := NewFrontend(fmt.Sprintf("http://localhost%s", addr))
+	if err != nil {
+		return nil, err
+	}
+
+	return &Server{
 		addr,
 		logger,
 		ChordsAPI{db, logger, authKey},
-		Frontend{fmt.Sprintf("http://localhost%s", addr)},
-	}
+		frontend,
+	}, nil
 }
 
 func (s *Server) Start() {
