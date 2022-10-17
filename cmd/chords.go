@@ -14,12 +14,12 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
 
 	"github.com/barrettj12/chords/backend/dblayer"
+	"github.com/barrettj12/chords/client"
 )
 
 var SERVER_URL = "http://localhost:8080"
@@ -81,7 +81,15 @@ func backup(args []string) {
 //	sync <path/to/local/db> <server/url>
 func sync(args []string) {
 	db := dblayer.NewLocalfs(args[0], log.Default())
-	server := args[1]
+	serverURL := args[1]
+	authKey, err := os.ReadFile("auth_key")
+	if err != nil {
+		fmt.Printf("WARNING: couldn't read auth_key: %v\n", err)
+	}
+	client, err := client.NewClient(serverURL, string(authKey))
+	if err != nil {
+		panic(err)
+	}
 
 	songs, err := db.GetSongs("", "")
 	if err != nil {
@@ -89,33 +97,22 @@ func sync(args []string) {
 	}
 
 	for _, localSong := range songs {
-		// TODO: factor out this logic into common "client" package
-		resp, err := http.Get(fmt.Sprintf("%s/api/v0/songs?id=%s", server, localSong.ID))
+		songs, err := client.GetSongs(nil, &localSong.ID, nil)
 		if err != nil {
 			panic(err)
 		}
-		data, err := io.ReadAll(resp.Body)
-		if err != nil {
-			panic(err)
-		}
-		res := []dblayer.SongMeta{}
-		err = json.Unmarshal(data, &res)
-		if err != nil {
-			panic(err)
-		}
-
-		if len(res) == 0 {
+		if len(songs) == 0 {
 			// Song doesn't exist in remote DB
-			body, err := json.Marshal(localSong)
-			if err != nil {
-				panic(err)
-			}
-			_, err = http.Post(server+"/api/v0/songs", "application/json", bytes.NewReader(body))
+			_, err := client.NewSong(localSong)
 			if err != nil {
 				panic(err)
 			}
 		} else {
 			// Update song in remote DB
+			_, err := client.UpdateSong(localSong.ID, localSong)
+			if err != nil {
+				panic(err)
+			}
 		}
 
 		// Sync chords
@@ -123,8 +120,7 @@ func sync(args []string) {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("%s\n", chords)
-		_, err = httpPut(server+"/api/v0/chords?id="+localSong.ID, "text/plain", bytes.NewReader(chords))
+		client.UpdateChords(localSong.ID, chords)
 		if err != nil {
 			panic(err)
 		}
@@ -139,13 +135,4 @@ func prompt(s *bufio.Scanner, q string, out *string) {
 	fmt.Print(q)
 	s.Scan()
 	*out = s.Text()
-}
-
-func httpPut(url, contentType string, body io.Reader) (resp *http.Response, err error) {
-	req, err := http.NewRequest(http.MethodPut, url, body)
-	if err != nil {
-		return nil, err
-	}
-	req.Header.Set("Content-Type", contentType)
-	return http.DefaultClient.Do(req)
 }
