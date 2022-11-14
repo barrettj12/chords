@@ -15,6 +15,35 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+func TestArtists(t *testing.T) {
+	// Set up DB & server, http writer
+	db := dblayer.NewTempDB()
+	s := Server{api: ChordsAPI{db: db}}
+
+	// Add artists to DB
+	artists := []string{"Elton John", "Rod Stewart", "Spacehog", "foobar"}
+	for _, a := range artists {
+		db.NewSong(dblayer.SongMeta{
+			Artist: a,
+		})
+	}
+
+	// Get artists via API
+	r := httptest.NewRequest(http.MethodGet, "/api/v0/songs", nil)
+	w := httptest.NewRecorder()
+	s.api.artistsHandler(w, r)
+
+	res := w.Result()
+	data, err := io.ReadAll(res.Body)
+	assert.Nil(t, err)
+	assert.Equal(t, res.StatusCode, http.StatusOK, "body: %s", data)
+
+	respArtists := []string{}
+	err = json.Unmarshal(data, &respArtists)
+	assert.Nil(t, err)
+	assert.ElementsMatch(t, respArtists, artists)
+}
+
 func TestNewSong(t *testing.T) {
 	// Set up DB
 	dataDir, err := os.MkdirTemp("", "data")
