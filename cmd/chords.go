@@ -110,7 +110,7 @@ func sync(args []string) {
 			if err != nil {
 				panic(err)
 			}
-		} else {
+		} else if songs[0] != localSong {
 			// Update song in remote DB
 			_, err := client.UpdateSong(localSong.ID, localSong)
 			if err != nil {
