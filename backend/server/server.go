@@ -10,6 +10,7 @@
 package server
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -59,6 +60,13 @@ func (s *Server) Start() {
 	http.HandleFunc("/b/artists", s.frontend.artistsHandler)
 	http.HandleFunc("/b/songs", s.frontend.songsHandler)
 	http.HandleFunc("/b/chords", s.frontend.chordsHandler)
+
+	// Favicon
+	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./favicon.ico")
+	})
+
+	// Default redirect to frontend artists page
 	http.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
 
 	// Start listening on port 8080
@@ -76,10 +84,27 @@ type handler struct {
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Log request
 	h.log.Printf("request: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
-	// Add CORS header
-	w.Header().Set("Access-Control-Allow-Origin", "*")
 
-	http.DefaultServeMux.ServeHTTP(w, r)
+	// Log body (for debugging)
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		h.log.Printf("ERROR reading request body: %s\n", err)
+		http.Error(w, "reading request body", http.StatusInternalServerError)
+		return
+	}
+
+	r.Body.Close()
+	h.log.Printf("request body:\n%s\n", body)
+	r.Body = io.NopCloser(bytes.NewReader(body))
+
+	// Duplicate writer so we can view response
+	w2 := NewResponseWriterWrapper(w)
+
+	// Add CORS header
+	w2.Header().Set("Access-Control-Allow-Origin", "*")
+
+	http.DefaultServeMux.ServeHTTP(w2, r)
+	h.log.Printf("sending response:\n%s\n", w2.String())
 }
 
 // HTTP HANDLER FUNCTIONS
@@ -294,4 +319,46 @@ func (s *ChordsAPI) writeJSON(w http.ResponseWriter, data any) {
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(jData)
+}
+
+// ResponseWriter wrapper allowing inspection of the outgoing response
+// Credit to Alessandro Argentieri on Stack Overflow
+// https://stackoverflow.com/a/66531582
+
+// ResponseWriterWrapper struct is used to log the response
+type ResponseWriterWrapper struct {
+	w          *http.ResponseWriter
+	body       *bytes.Buffer
+	statusCode *int
+}
+
+// NewResponseWriterWrapper static function creates a wrapper for the http.ResponseWriter
+func NewResponseWriterWrapper(w http.ResponseWriter) ResponseWriterWrapper {
+	var buf bytes.Buffer
+	var statusCode int = 200
+	return ResponseWriterWrapper{
+		w:          &w,
+		body:       &buf,
+		statusCode: &statusCode,
+	}
+}
+
+func (rww ResponseWriterWrapper) Write(buf []byte) (int, error) {
+	rww.body.Write(buf)
+	return (*rww.w).Write(buf)
+}
+
+// Header function overwrites the http.ResponseWriter Header() function
+func (rww ResponseWriterWrapper) Header() http.Header {
+	return (*rww.w).Header()
+}
+
+// WriteHeader function overwrites the http.ResponseWriter WriteHeader() function
+func (rww ResponseWriterWrapper) WriteHeader(statusCode int) {
+	(*rww.statusCode) = statusCode
+	(*rww.w).WriteHeader(statusCode)
+}
+
+func (rww ResponseWriterWrapper) String() string {
+	return rww.body.String()
 }
