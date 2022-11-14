@@ -3,6 +3,7 @@ package client
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -31,20 +32,16 @@ func NewClient(serverURL, authKey string) (*Client, error) {
 }
 
 func (c *Client) GetArtists() ([]string, error) {
-	endpoint := *c.serverURL
-	endpoint.Path = API_ARTISTS
-	resp, err := http.Get(endpoint.String())
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := io.ReadAll(resp.Body)
+	resp, err := c.request(requestParams{
+		method: http.MethodGet,
+		path:   API_ARTISTS,
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	artists := []string{}
-	err = json.Unmarshal(data, &artists)
+	err = json.Unmarshal(resp, &artists)
 	if err != nil {
 		return nil, err
 	}
@@ -53,34 +50,21 @@ func (c *Client) GetArtists() ([]string, error) {
 }
 
 func (c *Client) GetSongs(artist, id, query *string) ([]dblayer.SongMeta, error) {
-	endpoint := *c.serverURL
-	endpoint.Path = API_SONGS
-
-	// Query params
-	v := url.Values{}
-	if artist != nil {
-		v.Add("artist", *artist)
-	}
-	if id != nil {
-		v.Add("id", *id)
-	}
-	if query != nil {
-		v.Add("query", *query)
-	}
-	endpoint.RawQuery = v.Encode()
-
-	resp, err := http.Get(endpoint.String())
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := io.ReadAll(resp.Body)
+	resp, err := c.request(requestParams{
+		method: http.MethodGet,
+		path:   API_SONGS,
+		queryParams: map[string]*string{
+			"artist": artist,
+			"id":     id,
+			"query":  query,
+		},
+	})
 	if err != nil {
 		return nil, err
 	}
 
 	songs := []dblayer.SongMeta{}
-	err = json.Unmarshal(data, &songs)
+	err = json.Unmarshal(resp, &songs)
 	if err != nil {
 		return nil, err
 	}
@@ -94,21 +78,19 @@ func (c *Client) NewSong(song dblayer.SongMeta) (dblayer.SongMeta, error) {
 		return dblayer.SongMeta{}, err
 	}
 
-	endpoint := *c.serverURL
-	endpoint.Path = API_SONGS
-
-	resp, err := http.Post(endpoint.String(), "application/json", bytes.NewReader(data))
-	if err != nil {
-		return dblayer.SongMeta{}, err
-	}
-
-	data, err = io.ReadAll(resp.Body)
+	resp, err := c.request(requestParams{
+		method:      http.MethodPost,
+		path:        API_SONGS,
+		auth:        true,
+		body:        data,
+		contentType: "application/json",
+	})
 	if err != nil {
 		return dblayer.SongMeta{}, err
 	}
 
 	respSong := dblayer.SongMeta{}
-	err = json.Unmarshal(data, &respSong)
+	err = json.Unmarshal(resp, &respSong)
 	if err != nil {
 		return dblayer.SongMeta{}, err
 	}
@@ -122,24 +104,22 @@ func (c *Client) UpdateSong(id string, song dblayer.SongMeta) (dblayer.SongMeta,
 		return dblayer.SongMeta{}, err
 	}
 
-	endpoint := *c.serverURL
-	endpoint.Path = API_SONGS
-	v := url.Values{}
-	v.Add("id", id)
-	endpoint.RawQuery = v.Encode()
-
-	resp, err := httpPut(endpoint.String(), "application/json", bytes.NewReader(data))
-	if err != nil {
-		return dblayer.SongMeta{}, err
-	}
-
-	data, err = io.ReadAll(resp.Body)
+	resp, err := c.request(requestParams{
+		method: http.MethodPut,
+		path:   API_SONGS,
+		queryParams: map[string]*string{
+			"id": &id,
+		},
+		auth:        true,
+		body:        data,
+		contentType: "application/json",
+	})
 	if err != nil {
 		return dblayer.SongMeta{}, err
 	}
 
 	respSong := dblayer.SongMeta{}
-	err = json.Unmarshal(data, &respSong)
+	err = json.Unmarshal(resp, &respSong)
 	if err != nil {
 		return dblayer.SongMeta{}, err
 	}
@@ -148,61 +128,90 @@ func (c *Client) UpdateSong(id string, song dblayer.SongMeta) (dblayer.SongMeta,
 }
 
 func (c *Client) DeleteSong(id string) error {
-	endpoint := *c.serverURL
-	endpoint.Path = API_SONGS
-	v := url.Values{}
-	v.Add("id", id)
-	endpoint.RawQuery = v.Encode()
-
-	_, err := httpDelete(endpoint.String())
+	_, err := c.request(requestParams{
+		method: http.MethodDelete,
+		path:   API_SONGS,
+		queryParams: map[string]*string{
+			"id": &id,
+		},
+		auth: true,
+	})
 	return err
 }
 
 func (c *Client) GetChords(id string) ([]byte, error) {
-	endpoint := *c.serverURL
-	endpoint.Path = API_CHORDS
-	v := url.Values{}
-	v.Add("id", id)
-	endpoint.RawQuery = v.Encode()
-
-	resp, err := http.Get(endpoint.String())
-	if err != nil {
-		return nil, err
-	}
-
-	return io.ReadAll(resp.Body)
+	return c.request(requestParams{
+		method: http.MethodGet,
+		path:   API_CHORDS,
+		queryParams: map[string]*string{
+			"id": &id,
+		},
+	})
 }
 
 func (c *Client) UpdateChords(id string, chords []byte) ([]byte, error) {
-	endpoint := *c.serverURL
-	endpoint.Path = API_CHORDS
-	v := url.Values{}
-	v.Add("id", id)
-	endpoint.RawQuery = v.Encode()
-
-	resp, err := httpPut(endpoint.String(), "text/plain", bytes.NewReader(chords))
-	if err != nil {
-		return nil, err
-	}
-
-	return io.ReadAll(resp.Body)
+	return c.request(requestParams{
+		method: http.MethodPut,
+		path:   API_CHORDS,
+		queryParams: map[string]*string{
+			"id": &id,
+		},
+		body:        chords,
+		contentType: "text/plain",
+	})
 }
 
 // HELPER METHODS
 
-func httpPut(url, contentType string, body io.Reader) (resp *http.Response, err error) {
-	req, err := http.NewRequest(http.MethodPut, url, body)
+// Common logic for making HTTP requests
+func (c *Client) request(rp requestParams) ([]byte, error) {
+	// Prepare request URL
+	endpoint := *c.serverURL
+	endpoint.Path = rp.path
+
+	// Add query params
+	v := url.Values{}
+	for key, val := range rp.queryParams {
+		if val != nil {
+			v.Add(key, *val)
+		}
+	}
+	endpoint.RawQuery = v.Encode()
+
+	// Prepare request
+	req, err := http.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader(rp.body))
 	if err != nil {
 		return nil, err
 	}
-	req.Header.Set("Content-Type", contentType)
-	return http.DefaultClient.Do(req)
+
+	// Add headers
+	if rp.contentType != "" {
+		req.Header.Set("Content-Type", rp.contentType)
+	}
+	if rp.auth {
+		req.Header.Set("Authorization", c.authKey)
+	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// For 4xx/5xx response codes, we want to error
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("response has status %q", resp.Status)
+	}
+
+	// Read body and return
+	return io.ReadAll(resp.Body)
 }
 
-func httpDelete(url string) (resp *http.Response, err error) {
-	req, err := http.NewRequest(http.MethodDelete, url, nil)
-	if err != nil {
-		return nil, err
-	}
-	return http.DefaultClient.Do(req)
+// Parameters for an API request
+type requestParams struct {
+	method      string
+	path        string
+	queryParams map[string]*string
+	auth        bool
+	body        []byte
+	contentType string
 }
