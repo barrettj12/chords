@@ -179,7 +179,7 @@ func (c *Client) request(rp requestParams) ([]byte, error) {
 	endpoint.RawQuery = v.Encode()
 
 	// Prepare request
-	req, err := http.NewRequest(http.MethodPost, endpoint.String(), bytes.NewReader(rp.body))
+	req, err := http.NewRequest(rp.method, endpoint.String(), bytes.NewReader(rp.body))
 	if err != nil {
 		return nil, err
 	}
