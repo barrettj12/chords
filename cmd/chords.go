@@ -85,6 +85,8 @@ func sync(args []string) {
 	authKey, err := os.ReadFile("auth_key")
 	if err != nil {
 		fmt.Printf("WARNING: couldn't read auth_key: %v\n", err)
+	} else {
+		fmt.Println("using auth key from file")
 	}
 	client, err := client.NewClient(serverURL, string(authKey))
 	if err != nil {
@@ -97,6 +99,7 @@ func sync(args []string) {
 	}
 
 	for _, localSong := range songs {
+		fmt.Printf("syncing %q\n", localSong.Name)
 		songs, err := client.GetSongs(nil, &localSong.ID, nil)
 		if err != nil {
 			panic(err)
