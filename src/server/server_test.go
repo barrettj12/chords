@@ -11,7 +11,7 @@ import (
 	"os"
 	"testing"
 
-	"github.com/barrettj12/chords/backend/dblayer"
+	"github.com/barrettj12/chords/src/dblayer"
 	"github.com/stretchr/testify/assert"
 )
 

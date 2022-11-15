@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/barrettj12/chords/backend/dblayer"
+	"github.com/barrettj12/chords/src/dblayer"
 )
 
 // Client makes it easy to access API methods

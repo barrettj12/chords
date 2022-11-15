@@ -5,9 +5,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/barrettj12/chords/backend/dblayer"
-	"github.com/barrettj12/chords/backend/server"
-	"github.com/barrettj12/chords/client"
+	"github.com/barrettj12/chords/src/client"
+	"github.com/barrettj12/chords/src/dblayer"
+	"github.com/barrettj12/chords/src/server"
 	"github.com/stretchr/testify/assert"
 )
 

@@ -15,8 +15,8 @@ import (
 	"os"
 	"strconv"
 
-	"github.com/barrettj12/chords/backend/dblayer"
-	"github.com/barrettj12/chords/backend/server"
+	"github.com/barrettj12/chords/src/dblayer"
+	"github.com/barrettj12/chords/src/server"
 )
 
 func main() {
