@@ -16,6 +16,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/barrettj12/chords/backend/dblayer"
 )
@@ -98,13 +99,19 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = io.NopCloser(bytes.NewReader(body))
 
 	// Duplicate writer so we can view response
-	w2 := NewResponseWriterWrapper(w)
+	// Only want to log API responses
+	if strings.HasPrefix(r.URL.Path, "/api") {
+		w2 := NewResponseWriterWrapper(w)
+		defer func() {
+			resp := w2.String()
+			h.log.Printf("sending response:\n%s\n", resp)
+		}()
+		w = w2
+	}
 
 	// Add CORS header
-	w2.Header().Set("Access-Control-Allow-Origin", "*")
-
-	http.DefaultServeMux.ServeHTTP(w2, r)
-	h.log.Printf("sending response:\n%s\n", w2.String())
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	http.DefaultServeMux.ServeHTTP(w, r)
 }
 
 // HTTP HANDLER FUNCTIONS
