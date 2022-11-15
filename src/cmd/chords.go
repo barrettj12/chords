@@ -18,8 +18,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/barrettj12/chords/backend/dblayer"
-	"github.com/barrettj12/chords/client"
+	"github.com/barrettj12/chords/src/client"
+	"github.com/barrettj12/chords/src/dblayer"
 )
 
 var SERVER_URL = "http://localhost:8080"

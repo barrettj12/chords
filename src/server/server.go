@@ -20,7 +20,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/barrettj12/chords/backend/dblayer"
+	"github.com/barrettj12/chords/src/dblayer"
 )
 
 type Server struct {

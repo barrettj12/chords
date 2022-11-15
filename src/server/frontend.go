@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"sort"
 
-	"github.com/barrettj12/chords/client"
+	"github.com/barrettj12/chords/src/client"
 )
 
 type Frontend struct {
