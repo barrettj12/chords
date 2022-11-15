@@ -156,6 +156,7 @@ func (c *Client) UpdateChords(id string, chords []byte) ([]byte, error) {
 		queryParams: map[string]*string{
 			"id": &id,
 		},
+		auth:        true,
 		body:        chords,
 		contentType: "text/plain",
 	})
