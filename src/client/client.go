@@ -1,3 +1,12 @@
+// Jordy's Chordies - a web app for song chords
+//     https://github.com/barrettj12/chords
+// Copyright 2022, Jordan Barrett (@barrettj12)
+//     https://github.com/barrettj12
+// Licensed under the GNU AGPLv3.
+
+// src/client/client.go
+// An API client, providing Go bindings for accessing the chords API.
+
 package client
 
 import (

@@ -4,8 +4,8 @@
 //     https://github.com/barrettj12
 // Licensed under the GNU AGPLv3.
 
-// cmd/chords.go
-// The command-line interface used to update the chords database.
+// src/cmd/chords.go
+// The command-line interface, used to update the chords database.
 
 package main
 

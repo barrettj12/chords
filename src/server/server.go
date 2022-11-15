@@ -4,7 +4,7 @@
 //     https://github.com/barrettj12
 // Licensed under the GNU AGPLv3.
 
-// backend/server/server.go
+// src/server/server.go
 // Contains the app's HTTP server and request handlers
 
 package server

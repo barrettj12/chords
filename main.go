@@ -4,8 +4,9 @@
 //     https://github.com/barrettj12
 // Licensed under the GNU AGPLv3.
 
-// backend/main.go
-// Entry point for the backend
+// main.go
+// Main entry point for the API/frontend server. Used locally and in
+// production.
 
 package main
 

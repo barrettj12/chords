@@ -4,11 +4,12 @@
 //     https://github.com/barrettj12
 // Licensed under the GNU AGPLv3.
 
-// backend/dblayer/interface.go
-// This package contains the database layer, which is responsible for
-// communicating with the database, and converting between the database's
+// src/dblayer/db.go
+// This file contains the ChordsDB interface, which is implemented by the
+// different DB "providers" in this package. Implementations are responsible
+// for communicating with the database, and converting between the database's
 // format and Go objects.
-// This file contains interfaces/code shared between different DBs
+// It also contains the core data structures for the app (SongMeta, Chords).
 
 package dblayer
 
