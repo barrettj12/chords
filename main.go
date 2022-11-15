@@ -58,5 +58,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	s.Start()
+	err = s.Run()
+	if err != nil {
+		panic(err)
+	}
 }

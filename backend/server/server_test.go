@@ -18,7 +18,7 @@ import (
 func TestArtists(t *testing.T) {
 	// Set up DB & server, http writer
 	db := dblayer.NewTempDB()
-	s := Server{api: ChordsAPI{db: db}}
+	s := Server{api: &ChordsAPI{db: db}}
 
 	// Add artists to DB
 	artists := []string{"Elton John", "Rod Stewart", "Spacehog", "foobar"}
@@ -56,7 +56,7 @@ func TestNewSong(t *testing.T) {
 	logger := log.Default()
 	db := dblayer.NewLocalfs(dataDir, logger)
 
-	s := Server{api: ChordsAPI{db: db}}
+	s := Server{api: &ChordsAPI{db: db}}
 	w := httptest.NewRecorder()
 
 	// Add new song via API
@@ -92,7 +92,7 @@ func TestNewSong(t *testing.T) {
 func TestUpdateSong(t *testing.T) {
 	// Set up DB, server, http writer
 	db := dblayer.NewTempDB()
-	s := Server{api: ChordsAPI{db: db}}
+	s := Server{api: &ChordsAPI{db: db}}
 	w := httptest.NewRecorder()
 
 	// Put a song in the database

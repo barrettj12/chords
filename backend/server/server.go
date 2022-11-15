@@ -11,7 +11,9 @@ package server
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -22,17 +24,9 @@ import (
 )
 
 type Server struct {
-	addr   string
-	logger *log.Logger
-
-	api      ChordsAPI
-	frontend *Frontend
-}
-
-type ChordsAPI struct {
-	db      dblayer.ChordsDB
-	logger  *log.Logger
-	authKey string
+	httpServer http.Server
+	logger     *log.Logger
+	api        *ChordsAPI
 }
 
 // New returns a new Server with the specified DB and address. `logFlags` is
@@ -42,60 +36,87 @@ func New(db dblayer.ChordsDB, addr string, logger *log.Logger, authKey string) (
 	if err != nil {
 		return nil, err
 	}
+	api := ChordsAPI{db, logger, authKey}
 
 	return &Server{
-		addr,
-		logger,
-		ChordsAPI{db, logger, authKey},
-		frontend,
+		httpServer: http.Server{
+			Addr: addr,
+			Handler: newHandler(
+				logger,
+				&api,
+				frontend,
+			),
+		},
+		logger: logger,
+		api:    &api,
 	}, nil
 }
 
-func (s *Server) Start() {
-	// Register API endpoints
-	http.HandleFunc("/api/v0/artists", s.api.artistsHandler) // list artists in database
-	http.HandleFunc("/api/v0/songs", s.api.songsHandler)     // song metadata API
-	http.HandleFunc("/api/v0/chords", s.api.chordsHandler)   // view/update a chord sheet
+func (s *Server) Run() error {
+	s.logger.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.httpServer.Addr))
+	closeErr := s.httpServer.ListenAndServe()
+	if errors.Is(closeErr, http.ErrServerClosed) {
+		s.logger.Println("server closed")
+		return nil
+	}
+	return closeErr
+}
 
-	// Test frontend endpoints
-	http.HandleFunc("/b/artists", s.frontend.artistsHandler)
-	http.HandleFunc("/b/songs", s.frontend.songsHandler)
-	http.HandleFunc("/b/chords", s.frontend.chordsHandler)
-
-	// Favicon
-	http.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./favicon.ico")
-	})
-
-	// Default redirect to frontend artists page
-	http.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
-
-	// Start listening on port 8080
-	s.logger.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.addr))
-	s.logger.Fatal(http.ListenAndServe(s.addr, handler{s.logger}))
+// Shuts down the HTTP server - necessary for running tests back-to-back.
+func (s *Server) Kill() error {
+	return s.httpServer.Shutdown(context.Background())
 }
 
 // handler does some extra post-request / pre-response handling common
 // to all requests - see the ServeHTTP method below.
 type handler struct {
-	log *log.Logger
+	logger *log.Logger
+	mux    http.ServeMux
+}
+
+func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler {
+	// Set up mux
+	mux := http.ServeMux{}
+
+	// Register API endpoints
+	mux.HandleFunc("/api/v0/artists", api.artistsHandler) // list artists in database
+	mux.HandleFunc("/api/v0/songs", api.songsHandler)     // song metadata API
+	mux.HandleFunc("/api/v0/chords", api.chordsHandler)   // view/update a chord sheet
+
+	// Test frontend endpoints
+	mux.HandleFunc("/b/artists", frontend.artistsHandler)
+	mux.HandleFunc("/b/songs", frontend.songsHandler)
+	mux.HandleFunc("/b/chords", frontend.chordsHandler)
+
+	// Favicon
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./favicon.ico")
+	})
+
+	// Default redirect to frontend artists page
+	mux.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
+
+	return handler{
+		logger: logger,
+		mux:    mux,
+	}
 }
 
 // ServeHTTP implements http.Handler.
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Log request
-	h.log.Printf("request: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
+	h.logger.Printf("request: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
 
 	// Log body (for debugging)
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		h.log.Printf("ERROR reading request body: %s\n", err)
+		h.logger.Printf("ERROR reading request body: %s\n", err)
 		http.Error(w, "reading request body", http.StatusInternalServerError)
 		return
 	}
 
 	r.Body.Close()
-	h.log.Printf("request body:\n%s\n", body)
+	h.logger.Printf("request body:\n%s\n", body)
 	r.Body = io.NopCloser(bytes.NewReader(body))
 
 	// Duplicate writer so we can view response
@@ -104,17 +125,23 @@ func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w2 := NewResponseWriterWrapper(w)
 		defer func() {
 			resp := w2.String()
-			h.log.Printf("sending response:\n%s\n", resp)
+			h.logger.Printf("sending response:\n%s\n", resp)
 		}()
 		w = w2
 	}
 
 	// Add CORS header
 	w.Header().Set("Access-Control-Allow-Origin", "*")
-	http.DefaultServeMux.ServeHTTP(w, r)
+	h.mux.ServeHTTP(w, r)
 }
 
-// HTTP HANDLER FUNCTIONS
+// API HANDLERS
+
+type ChordsAPI struct {
+	db      dblayer.ChordsDB
+	logger  *log.Logger
+	authKey string
+}
 
 // Handles requests to the /api/v0/artists endpoint.
 func (s *ChordsAPI) artistsHandler(w http.ResponseWriter, r *http.Request) {
