@@ -1,10 +1,30 @@
 # Frontend URL structure
 
+The frontend is served under `/b/`.
+
+### `/b/artists`
+Shows all artists in the database, sorted alphabetically.
+
+### `/b/songs?artist=<artist>`
+Shows all available songs for the given artist.
+
+### `/b/chords?id=<id>`
+Shows the chords for the song with the given ID. The song IDs tend to be pretty
+human-friendly (e.g. `BananaPancakes`, `SexAndCandy`), so these URLs actually
+look okay.
+
+
+## Alternative idea
+
+*This was my original idea, but it requires a lot of extra implementation so
+we are not doing it at the moment. Leaving it here for historical interest.*
+
 Although the backend API mostly uses song IDs to identify resources, e.g.
 ```
 /api/v0/chords?id=1037
 ```
-we want the frontend user interface to have nice, human-readable URLs. The artist and song name should be sufficient to uniquely identify any song.
+we want the frontend user interface to have nice, human-readable URLs. The
+artist and song name should be sufficient to uniquely identify any song.
 
 ### `mychords.com/`
 The homepage will show all artists in the database, grouped alphabetically.
