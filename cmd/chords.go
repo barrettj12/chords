@@ -37,6 +37,8 @@ func main() {
 		backup(args)
 	case "sync":
 		sync(args)
+	case "update-chords":
+		updateChords(args)
 	default:
 		fmt.Printf("unknown command %q\n", cmd)
 		os.Exit(1)
@@ -82,16 +84,7 @@ func backup(args []string) {
 func sync(args []string) {
 	db := dblayer.NewLocalfs(args[0], log.Default())
 	serverURL := args[1]
-	authKey, err := os.ReadFile("auth_key")
-	if err != nil {
-		fmt.Printf("WARNING: couldn't read auth_key: %v\n", err)
-	} else {
-		fmt.Println("using auth key from file")
-	}
-	client, err := client.NewClient(serverURL, string(authKey))
-	if err != nil {
-		panic(err)
-	}
+	client := getClient(serverURL)
 
 	songs, err := db.GetSongs("", "")
 	if err != nil {
@@ -130,6 +123,31 @@ func sync(args []string) {
 	}
 }
 
+// Update chords via the POST /api/v0/chords endpoint
+//
+//	chords update-chords <server-url> <song-id> [path-to-chords-file]
+func updateChords(args []string) {
+	serverURL := args[0]
+	client := getClient(serverURL)
+	songID := args[1]
+	var path string
+	if len(args) > 2 {
+		path = args[2]
+	} else {
+		path = fmt.Sprintf("./data/%s/chords.txt", songID)
+	}
+
+	chords, err := os.ReadFile(path)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = client.UpdateChords(songID, chords)
+	if err != nil {
+		panic(err)
+	}
+}
+
 // HELPER FUNCTIONS
 
 // prompt prints the question to stdout, then reads a line from the provided
@@ -138,4 +156,18 @@ func prompt(s *bufio.Scanner, q string, out *string) {
 	fmt.Print(q)
 	s.Scan()
 	*out = s.Text()
+}
+
+func getClient(serverURL string) *client.Client {
+	authKey, err := os.ReadFile("auth_key")
+	if err != nil {
+		fmt.Printf("WARNING: couldn't read auth_key: %v\n", err)
+	} else {
+		fmt.Println("using auth key from file")
+	}
+	client, err := client.NewClient(serverURL, string(authKey))
+	if err != nil {
+		panic(err)
+	}
+	return client
 }
