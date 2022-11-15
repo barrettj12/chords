@@ -12,8 +12,8 @@ import (
 )
 
 func TestNewSong(t *testing.T) {
-	_, cleanup, _, c := setup(t)
-	defer cleanup()
+	_, _, c, teardown := setup(t)
+	defer teardown()
 
 	// Add new song via API
 	newSong := dblayer.SongMeta{
@@ -24,15 +24,15 @@ func TestNewSong(t *testing.T) {
 		TrackNum: 3,
 	}
 	resp, err := c.NewSong(newSong)
-	assert.Nil(t, err)
+	handleClientError(t, err)
 	assert.Equal(t, resp, newSong)
 
 	// TODO: check db state via fs?
 }
 
 func TestUpdateChords(t *testing.T) {
-	db, cleanup, _, c := setup(t)
-	defer cleanup()
+	db, _, c, teardown := setup(t)
+	defer teardown()
 
 	// Add new song to DB
 	newSong := dblayer.SongMeta{
@@ -60,26 +60,21 @@ Bm7 - Em7 - (D+maj7) - C
 G - D7 - G
 `)
 	resp, err := c.UpdateChords(newSong.ID, chords)
-	assert.Nil(t, err)
+	handleClientError(t, err)
 	assert.EqualValues(t, resp, chords)
 
 	// Get chords from API
 	retChords, err := c.GetChords(newSong.ID)
-	assert.Nil(t, err)
+	handleClientError(t, err)
 	assert.EqualValues(t, retChords, chords)
 
 	// TODO: check db state via fs?
 }
 
-func setup(t *testing.T) (dblayer.ChordsDB, func(), *server.Server, *client.Client) {
+func setup(t *testing.T) (dblayer.ChordsDB, *server.Server, *client.Client, func()) {
 	// Set up DB
 	dataDir, err := os.MkdirTemp("", "data")
 	assert.Nil(t, err)
-	cleanup := func() {
-		err := os.RemoveAll(dataDir)
-		assert.Nil(t, err)
-	}
-
 	logger := log.Default()
 	db := dblayer.NewLocalfs(dataDir, logger)
 
@@ -87,11 +82,30 @@ func setup(t *testing.T) (dblayer.ChordsDB, func(), *server.Server, *client.Clie
 	authKey := "passwordfoo"
 	s, err := server.New(db, ":8080", logger, authKey)
 	assert.Nil(t, err)
-	go s.Start()
+	go func() {
+		err = s.Run()
+		assert.Nil(t, err)
+	}()
 
 	// Set up client
 	c, err := client.NewClient("http://localhost:8080", authKey)
 	assert.Nil(t, err)
 
-	return db, cleanup, s, c
+	teardown := func() {
+		// Remove tempdir for DB
+		err := os.RemoveAll(dataDir)
+		assert.Nil(t, err)
+
+		// Kill server
+		err = s.Kill()
+		assert.Nil(t, err)
+	}
+
+	return db, s, c, teardown
+}
+
+func handleClientError(t *testing.T, err error) {
+	if err != nil {
+		t.Fatalf("ERROR: %s", err)
+	}
 }
