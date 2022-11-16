@@ -40,6 +40,8 @@ func main() {
 		sync(args)
 	case "update-chords":
 		updateChords(args)
+	case "count":
+		count(args)
 	// TODO: add a command to interactively add chords to DB
 	// using discogs API to get metadata
 	// https://github.com/irlndts/go-discogs
@@ -158,6 +160,30 @@ func updateChords(args []string) {
 	check(err)
 }
 
+// Count number of songs for each artist
+//
+//	count <server-url> [artists...]
+func count(args []string) {
+	serverURL := args[0]
+	artists := args[1:]
+	c, err := client.NewClient(serverURL, "")
+	check(err)
+
+	counts := make(map[string]int, len(artists))
+	songs, err := c.GetSongs(nil, nil, nil)
+	check(err)
+
+	for _, song := range songs {
+		counts[song.Artist]++
+	}
+
+	for artist, numSongs := range counts {
+		if len(artists) == 0 || sliceContains(artists, artist) {
+			fmt.Printf("%d\t%s\n", numSongs, artist)
+		}
+	}
+}
+
 // HELPER FUNCTIONS
 
 // prompt prints the question to stdout, then reads a line from the provided
@@ -184,4 +210,13 @@ func check(err error) {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func sliceContains[T comparable](slice []T, t T) bool {
+	for _, u := range slice {
+		if t == u {
+			return true
+		}
+	}
+	return false
 }
