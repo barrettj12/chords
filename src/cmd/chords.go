@@ -96,16 +96,12 @@ func sync(args []string) {
 		// Sync all songs
 		var err error
 		songs, err = db.GetSongs("", "")
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 	} else {
 		songs = make([]dblayer.SongMeta, 0, len(ids))
 		for _, id := range ids {
 			dbSongs, err := db.GetSongs("", id)
-			if err != nil {
-				panic(err)
-			}
+			check(err)
 			if len(dbSongs) == 0 {
 				fmt.Printf("song %q not found\n", id)
 			} else {
@@ -122,32 +118,22 @@ func sync(args []string) {
 		// TODO: parallelise here using goroutines
 		fmt.Printf("syncing %q\n", localSong.Name)
 		songs, err := client.GetSongs(nil, &localSong.ID, nil)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 		if len(songs) == 0 {
 			// Song doesn't exist in remote DB
 			_, err := client.NewSong(localSong)
-			if err != nil {
-				panic(err)
-			}
+			check(err)
 		} else if songs[0] != localSong {
 			// Update song in remote DB
 			_, err := client.UpdateSong(localSong.ID, localSong)
-			if err != nil {
-				panic(err)
-			}
+			check(err)
 		}
 
 		// Sync chords
 		chords, err := db.GetChords(localSong.ID)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 		client.UpdateChords(localSong.ID, chords)
-		if err != nil {
-			panic(err)
-		}
+		check(err)
 	}
 }
 
@@ -166,14 +152,10 @@ func updateChords(args []string) {
 	}
 
 	chords, err := os.ReadFile(path)
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 
 	_, err = client.UpdateChords(songID, chords)
-	if err != nil {
-		panic(err)
-	}
+	check(err)
 }
 
 // HELPER FUNCTIONS
@@ -194,8 +176,12 @@ func getClient(serverURL string) *client.Client {
 		fmt.Println("using auth key from file")
 	}
 	client, err := client.NewClient(serverURL, string(authKey))
+	check(err)
+	return client
+}
+
+func check(err error) {
 	if err != nil {
 		panic(err)
 	}
-	return client
 }
