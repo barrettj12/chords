@@ -105,7 +105,7 @@ func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler 
 // ServeHTTP implements http.Handler.
 func (h handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Log request
-	h.logger.Printf("request: %s %s from %s\n", r.Method, r.URL.Path, r.RemoteAddr)
+	h.logger.Printf("request: %s %s from %s\n", r.Method, r.RequestURI, r.RemoteAddr)
 
 	// Log body (for debugging)
 	body, err := io.ReadAll(r.Body)
