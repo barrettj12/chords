@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"sort"
 
 	"github.com/barrettj12/chords/src/client"
@@ -42,7 +43,7 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("<h1>Artists</h1>"))
 	for _, artist := range artists {
 		w.Write([]byte(
-			fmt.Sprintf(`<a href="/b/songs?artist=%[1]s">%[1]s</a><br>`, artist),
+			fmt.Sprintf(`<a href="/b/songs?artist=%[1]s">%[2]s</a><br>`, url.QueryEscape(artist), artist),
 		))
 	}
 }
@@ -54,7 +55,7 @@ func (f *Frontend) songsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte(fmt.Sprintf("<h1>Songs by %s</h1>", artist)))
 	for _, song := range songs {
 		w.Write([]byte(
-			fmt.Sprintf(`<a href="/b/chords?id=%[1]s">%[2]s</a><br>`, song.ID, song.Name),
+			fmt.Sprintf(`<a href="/b/chords?id=%[1]s">%[2]s</a><br>`, url.QueryEscape(song.ID), song.Name),
 		))
 	}
 }
