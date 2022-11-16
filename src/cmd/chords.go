@@ -25,6 +25,7 @@ import (
 var SERVER_URL = "http://localhost:8080"
 
 func main() {
+	// TODO: set server-url, local-db, auth-key via env variables
 	cmd := os.Args[1]
 	args := os.Args[2:]
 
@@ -39,6 +40,9 @@ func main() {
 		sync(args)
 	case "update-chords":
 		updateChords(args)
+	// TODO: add a command to interactively add chords to DB
+	// using discogs API to get metadata
+	// https://github.com/irlndts/go-discogs
 	default:
 		fmt.Printf("unknown command %q\n", cmd)
 		os.Exit(1)
@@ -80,18 +84,42 @@ func backup(args []string) {
 
 // sync copies chords from local db to remote
 //
-//	sync <path/to/local/db> <server/url>
+//	sync <path/to/local/db> <server/url> [song-ids...]
 func sync(args []string) {
 	db := dblayer.NewLocalfs(args[0], log.Default())
 	serverURL := args[1]
 	client := getClient(serverURL)
 
-	songs, err := db.GetSongs("", "")
-	if err != nil {
-		panic(err)
+	ids := args[2:]
+	var songs []dblayer.SongMeta
+	if len(ids) == 0 {
+		// Sync all songs
+		var err error
+		songs, err = db.GetSongs("", "")
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		songs = make([]dblayer.SongMeta, 0, len(ids))
+		for _, id := range ids {
+			dbSongs, err := db.GetSongs("", id)
+			if err != nil {
+				panic(err)
+			}
+			if len(dbSongs) == 0 {
+				fmt.Printf("song %q not found\n", id)
+			} else {
+				songs = append(songs, dbSongs[0])
+			}
+		}
+	}
+
+	if len(songs) == 0 {
+		fmt.Println("no songs to sync")
 	}
 
 	for _, localSong := range songs {
+		// TODO: parallelise here using goroutines
 		fmt.Printf("syncing %q\n", localSong.Name)
 		songs, err := client.GetSongs(nil, &localSong.ID, nil)
 		if err != nil {
