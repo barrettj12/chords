@@ -10,12 +10,8 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 	"sort"
 
@@ -31,8 +27,6 @@ func main() {
 	switch cmd {
 	case "pull":
 		pull(args)
-	case "push":
-		push(st, args)
 	case "backup":
 		backup(args)
 	case "sync":
@@ -45,9 +39,8 @@ func main() {
 		validate(st, args)
 	case "albums":
 		albums(st, args)
-	// TODO: add a command to interactively add chords to DB
-	// using discogs API to get metadata
-	// https://github.com/irlndts/go-discogs
+	case "new":
+		new(st, args)
 	default:
 		fmt.Printf("unknown command %q\n", cmd)
 		os.Exit(1)
@@ -83,29 +76,6 @@ func initState() state {
 // pull gets chords from server.
 func pull(args []string) {
 	fmt.Println("pulling", args)
-}
-
-// push updates chords on the server.
-func push(st state, args []string) {
-	s := bufio.NewScanner(os.Stdin)
-	var artist, album, song, chords string
-
-	prompt(s, "Artist: ", &artist)
-	prompt(s, "Album: ", &album)
-	prompt(s, "Song: ", &song)
-	prompt(s, "Chords: ", &chords)
-
-	buf, err := json.Marshal(map[string]string{
-		"artist": artist,
-		"album":  album,
-		"song":   song,
-		"chords": chords,
-	})
-	if err != nil {
-		log.Fatalf("Error encoding to JSON: %s", err)
-	}
-
-	http.Post(st.serverURL+"/chords", "application/json", bytes.NewReader(buf))
 }
 
 // backup makes a full backup of the database.
@@ -274,14 +244,6 @@ func albums(st state, args []string) {
 }
 
 // HELPER FUNCTIONS
-
-// prompt prints the question to stdout, then reads a line from the provided
-// scanner, and sets the provided pointer to this value.
-func prompt(s *bufio.Scanner, q string, out *string) {
-	fmt.Print(q)
-	s.Scan()
-	*out = s.Text()
-}
 
 func check(err error) {
 	if err != nil {
