@@ -22,10 +22,8 @@ import (
 	"github.com/barrettj12/chords/src/dblayer"
 )
 
-var SERVER_URL = "http://localhost:8080"
-
 func main() {
-	// TODO: set server-url, local-db, auth-key via env variables
+	st := initState()
 	cmd := os.Args[1]
 	args := os.Args[2:]
 
@@ -33,17 +31,17 @@ func main() {
 	case "pull":
 		pull(args)
 	case "push":
-		push(args)
+		push(st, args)
 	case "backup":
 		backup(args)
 	case "sync":
-		sync(args)
+		sync(st, args)
 	case "update-chords":
-		updateChords(args)
+		updateChords(st, args)
 	case "count":
-		count(args)
+		count(st, args)
 	case "validate":
-		validate(args)
+		validate(st, args)
 	// TODO: add a command to interactively add chords to DB
 	// using discogs API to get metadata
 	// https://github.com/irlndts/go-discogs
@@ -53,13 +51,39 @@ func main() {
 	}
 }
 
+// Global state, passed to subcommands
+type state struct {
+	dbPath    string
+	serverURL string
+	authKey   string
+}
+
+func initState() state {
+	dbPath := "./data"
+
+	serverURL := "https://chords.fly.dev"
+
+	authKey, err := os.ReadFile("auth_key")
+	if err != nil {
+		fmt.Printf("WARNING: couldn't read auth_key: %v\n", err)
+	} else {
+		fmt.Println("INFO: using auth key from file")
+	}
+
+	return state{
+		dbPath,
+		serverURL,
+		string(authKey),
+	}
+}
+
 // pull gets chords from server.
 func pull(args []string) {
 	fmt.Println("pulling", args)
 }
 
 // push updates chords on the server.
-func push(args []string) {
+func push(st state, args []string) {
 	s := bufio.NewScanner(os.Stdin)
 	var artist, album, song, chords string
 
@@ -78,7 +102,7 @@ func push(args []string) {
 		log.Fatalf("Error encoding to JSON: %s", err)
 	}
 
-	http.Post(SERVER_URL+"/chords", "application/json", bytes.NewReader(buf))
+	http.Post(st.serverURL+"/chords", "application/json", bytes.NewReader(buf))
 }
 
 // backup makes a full backup of the database.
@@ -88,13 +112,13 @@ func backup(args []string) {
 
 // sync copies chords from local db to remote
 //
-//	sync <path/to/local/db> <server/url> [song-ids...]
-func sync(args []string) {
-	db := dblayer.NewLocalfs(args[0], log.Default())
-	serverURL := args[1]
-	client := getClient(serverURL)
+//	sync [song-ids...]
+func sync(st state, args []string) {
+	db := dblayer.NewLocalfs(st.dbPath, log.Default())
+	c, err := client.NewClient(st.serverURL, st.authKey)
+	check(err)
 
-	ids := args[2:]
+	ids := args
 	var songs []dblayer.SongMeta
 	if len(ids) == 0 {
 		// Sync all songs
@@ -121,36 +145,36 @@ func sync(args []string) {
 	for _, localSong := range songs {
 		// TODO: parallelise here using goroutines
 		fmt.Printf("syncing %q\n", localSong.Name)
-		songs, err := client.GetSongs(nil, &localSong.ID, nil)
+		songs, err := c.GetSongs(nil, &localSong.ID, nil)
 		check(err)
 		if len(songs) == 0 {
 			// Song doesn't exist in remote DB
-			_, err := client.NewSong(localSong)
+			_, err := c.NewSong(localSong)
 			check(err)
 		} else if songs[0] != localSong {
 			// Update song in remote DB
-			_, err := client.UpdateSong(localSong.ID, localSong)
+			_, err := c.UpdateSong(localSong.ID, localSong)
 			check(err)
 		}
 
 		// Sync chords
 		chords, err := db.GetChords(localSong.ID)
 		check(err)
-		client.UpdateChords(localSong.ID, chords)
+		c.UpdateChords(localSong.ID, chords)
 		check(err)
 	}
 }
 
 // Update chords via the POST /api/v0/chords endpoint
 //
-//	chords update-chords <server-url> <song-id> [path-to-chords-file]
-func updateChords(args []string) {
-	serverURL := args[0]
-	client := getClient(serverURL)
-	songID := args[1]
+//	chords update-chords <song-id> [path-to-chords-file]
+func updateChords(st state, args []string) {
+	c, err := client.NewClient(st.serverURL, st.authKey)
+	check(err)
+	songID := args[0]
 	var path string
-	if len(args) > 2 {
-		path = args[2]
+	if len(args) > 1 {
+		path = args[1]
 	} else {
 		path = fmt.Sprintf("./data/%s/chords.txt", songID)
 	}
@@ -158,17 +182,16 @@ func updateChords(args []string) {
 	chords, err := os.ReadFile(path)
 	check(err)
 
-	_, err = client.UpdateChords(songID, chords)
+	_, err = c.UpdateChords(songID, chords)
 	check(err)
 }
 
 // Count number of songs for each artist
 //
-//	count <server-url> [artists...]
-func count(args []string) {
-	serverURL := args[0]
-	artists := args[1:]
-	c, err := client.NewClient(serverURL, "")
+//	count [artists...]
+func count(st state, args []string) {
+	artists := args
+	c, err := client.NewClient(st.serverURL, st.authKey)
 	check(err)
 
 	counts := make(map[string]int, len(artists))
@@ -194,18 +217,6 @@ func prompt(s *bufio.Scanner, q string, out *string) {
 	fmt.Print(q)
 	s.Scan()
 	*out = s.Text()
-}
-
-func getClient(serverURL string) *client.Client {
-	authKey, err := os.ReadFile("auth_key")
-	if err != nil {
-		fmt.Printf("WARNING: couldn't read auth_key: %v\n", err)
-	} else {
-		fmt.Println("using auth key from file")
-	}
-	client, err := client.NewClient(serverURL, string(authKey))
-	check(err)
-	return client
 }
 
 func check(err error) {

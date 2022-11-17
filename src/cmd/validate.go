@@ -11,6 +11,8 @@ import (
 
 // Validate local database
 //
+//	usage: chords validate
+//
 // TODO:
 // - extra checks
 //   - no album has same track num twice
@@ -18,19 +20,13 @@ import (
 //
 // - option to set the "max track num" above which we will warn
 // - option to silence some checks by name
-func validate(args []string) {
-	if len(os.Args) < 1 {
-		log.Fatal("must provide data directory as argument")
-	}
-
-	datadir := args[0]
+func validate(st state, args []string) {
+	datadir := st.dbPath
 	entries, err := os.ReadDir(datadir)
-	if err != nil {
-		log.Fatal(err)
-	}
+	check(err)
 
 	for _, entry := range entries {
-		path := filepath.Join(datadir, entry.Name())
+		path := filepath.Join(st.dbPath, entry.Name())
 
 		// Check it's a directory
 		if !entry.IsDir() {
