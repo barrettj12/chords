@@ -17,6 +17,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"sort"
 
 	"github.com/barrettj12/chords/src/client"
 	"github.com/barrettj12/chords/src/dblayer"
@@ -42,6 +43,8 @@ func main() {
 		count(st, args)
 	case "validate":
 		validate(st, args)
+	case "albums":
+		albums(st, args)
 	// TODO: add a command to interactively add chords to DB
 	// using discogs API to get metadata
 	// https://github.com/irlndts/go-discogs
@@ -205,6 +208,67 @@ func count(st state, args []string) {
 	for artist, numSongs := range counts {
 		if len(artists) == 0 || sliceContains(artists, artist) {
 			fmt.Printf("%d\t%s\n", numSongs, artist)
+		}
+	}
+}
+
+// List albums and their tracks
+//
+//	usage: chords albums [artists...]
+func albums(st state, args []string) {
+	c, err := client.NewClient(st.serverURL, st.authKey)
+	check(err)
+
+	artists := args
+
+	songs := []dblayer.SongMeta{}
+	if len(artists) == 0 {
+		// Get songs for all artists
+		songs, err = c.GetSongs(nil, nil, nil)
+		check(err)
+	} else {
+		for _, artist := range artists {
+			newSongs, err := c.GetSongs(&artist, nil, nil)
+			check(err)
+			songs = append(songs, newSongs...)
+		}
+	}
+
+	//            artist -> album -> (trackNum, song)
+	type songWithNum struct {
+		name string
+		num  int
+	}
+	albums := map[string]map[string][]songWithNum{}
+
+	for _, song := range songs {
+		if albums[song.Artist] == nil {
+			albums[song.Artist] = map[string][]songWithNum{}
+		}
+		albums[song.Artist][song.Album] = append(
+			albums[song.Artist][song.Album], songWithNum{song.Name, song.TrackNum})
+	}
+
+	// Print albums
+	for artist, albumMap := range albums {
+		fmt.Println(artist)
+		for album, tracks := range albumMap {
+			if album == "" {
+				fmt.Println("  (no album)")
+				for _, song := range tracks {
+					fmt.Printf("    %s\n", song.name)
+				}
+
+			} else {
+				fmt.Printf("  %s\n", album)
+				sort.Slice(tracks, func(i, j int) bool {
+					return tracks[i].num < tracks[j].num
+				})
+
+				for _, song := range tracks {
+					fmt.Printf("    %d. %s\n", song.num, song.name)
+				}
+			}
 		}
 	}
 }
