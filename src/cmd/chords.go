@@ -42,6 +42,8 @@ func main() {
 		updateChords(args)
 	case "count":
 		count(args)
+	case "validate":
+		validate(args)
 	// TODO: add a command to interactively add chords to DB
 	// using discogs API to get metadata
 	// https://github.com/irlndts/go-discogs
