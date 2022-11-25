@@ -17,6 +17,8 @@ import (
 	"sort"
 
 	"github.com/barrettj12/chords/src/client"
+	"github.com/barrettj12/chords/src/dblayer"
+	"github.com/barrettj12/chords/src/html"
 )
 
 type Frontend struct {
@@ -40,24 +42,76 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	artists, _ := f.client.GetArtists()
 	sort.Slice(artists, func(i, j int) bool { return artists[i] < artists[j] })
 
-	w.Write([]byte("<h1>Artists</h1>"))
+	body := html.Body{}
+	body.Insert(html.NewHeading1("Artists"))
+
+	ul := html.NewUnorderedList()
+	body.Insert(ul)
 	for _, artist := range artists {
-		w.Write([]byte(
-			fmt.Sprintf(`<a href="/b/songs?artist=%[1]s">%[2]s</a><br>`, url.QueryEscape(artist), artist),
-		))
+		ul.Insert(html.NewListItem(html.NewAnchor(
+			fmt.Sprintf("/b/songs?artist=%s", url.QueryEscape(artist)),
+			artist,
+		)))
 	}
+
+	w.Write([]byte(body.Render()))
 }
 
 func (f *Frontend) songsHandler(w http.ResponseWriter, r *http.Request) {
 	artist := r.URL.Query().Get("artist")
 	songs, _ := f.client.GetSongs(&artist, nil, nil)
 
-	w.Write([]byte(fmt.Sprintf("<h1>Songs by %s</h1>", artist)))
+	// Group songs by album
+	albums := map[string][]dblayer.SongMeta{}
 	for _, song := range songs {
-		w.Write([]byte(
-			fmt.Sprintf(`<a href="/b/chords?id=%[1]s">%[2]s</a><br>`, url.QueryEscape(song.ID), song.Name),
-		))
+		albums[song.Album] = append(albums[song.Album], song)
+		sort.Slice(albums[song.Album], func(i, j int) bool {
+			return albums[song.Album][i].TrackNum < albums[song.Album][j].TrackNum
+		})
 	}
+	// Sort albums
+	albumNames := []string{}
+	for album := range albums {
+		albumNames = append(albumNames, album)
+	}
+	sort.Slice(albumNames, func(i, j int) bool {
+		if albumNames[j] == "" && albumNames[i] != "" {
+			return true
+		}
+		if albumNames[i] == "" && albumNames[j] != "" {
+			return false
+		}
+		return albumNames[i] < albumNames[j]
+	})
+
+	// Construct and render HTML
+	body := html.Body{}
+	body.Insert(html.NewHeading1(fmt.Sprintf("Songs by %s", artist)))
+
+	ulAlbums := html.NewUnorderedList()
+	body.Insert(ulAlbums)
+	for _, album := range albumNames {
+		tracklist := albums[album]
+		var htmlListTracks html.List
+		if album == "" {
+			album = "(no album)"
+			htmlListTracks = html.NewUnorderedList()
+		} else {
+			htmlListTracks = html.NewOrderedList()
+		}
+		ulAlbums.Insert(html.NewListItem(html.String(album), htmlListTracks))
+
+		for _, song := range tracklist {
+			li := html.NewListItem(html.NewAnchor(
+				fmt.Sprintf("/b/chords?id=%s", url.QueryEscape(song.ID)),
+				song.Name,
+			))
+			li.SetValue(fmt.Sprint(song.TrackNum))
+			htmlListTracks.Insert(li)
+		}
+	}
+
+	w.Write([]byte(body.Render()))
 }
 
 func (f *Frontend) chordsHandler(w http.ResponseWriter, r *http.Request) {
