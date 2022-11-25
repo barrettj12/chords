@@ -66,7 +66,7 @@ func prompt(s *bufio.Scanner, q string) string {
 
 func getID(song string) string {
 	id := ""
-	for _, c := range properTitle(song) {
+	for _, c := range strings.Title(song) {
 		if isAlphanumeric(c) {
 			id += string(c)
 		}
