@@ -193,6 +193,7 @@ func (c *Client) request(rp requestParams) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	req.Close = true
 
 	// Add headers
 	if rp.contentType != "" {
@@ -206,6 +207,7 @@ func (c *Client) request(rp requestParams) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
 	// For 4xx/5xx response codes, we want to error
 	if resp.StatusCode >= 400 {

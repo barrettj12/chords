@@ -85,7 +85,7 @@ func setup(t *testing.T) (dblayer.ChordsDB, *server.Server, *client.Client, func
 	// Set up DB
 	dataDir, err := os.MkdirTemp("", "data")
 	assert.Nil(t, err)
-	logger := log.Default()
+	logger := log.New(os.Stdout, "[LOG] ", log.Ltime|log.Lmicroseconds|log.Llongfile)
 	db := dblayer.NewLocalfs(dataDir, logger)
 
 	// Set up server
