@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"unicode"
 
 	"github.com/barrettj12/chords/src/dblayer"
 )
@@ -19,11 +20,19 @@ func new(st state, args []string) {
 	db := dblayer.NewLocalfs(st.dbPath, log.Default())
 	s := bufio.NewScanner(os.Stdin)
 
-	songName := prompt(s, "Song name: ")
+	songName := promptf(s, "Song name: ")
+	// Attempt to put song name in title case
+	properSongName := properTitle(songName)
+	if songName != properSongName {
+		resp := promptf(s, "Rename to %q? [y/n]: ", properSongName)
+		if resp == "y" {
+			songName = properSongName
+		}
+	}
+
 	id := getID(songName)
 	fmt.Printf("Suggested ID: %s\n", id)
-
-	idResp := prompt(s, "ID (enter to use default): ")
+	idResp := promptf(s, "ID (enter to use default): ")
 	if idResp != "" {
 		id = idResp
 	}
@@ -32,9 +41,14 @@ func new(st state, args []string) {
 
 	// TODO: use discogs API to get this metadata
 	// https://github.com/irlndts/go-discogs
-	artist := prompt(s, "Artist: ")
-	album := prompt(s, "Album: ")
-	trackNum, _ := strconv.Atoi(prompt(s, "Track number: "))
+	artist := promptf(s, "Artist: ")
+
+	// TODO: suggest existing albums for artist
+	album := promptf(s, "Album: ")
+	var trackNum int
+	if album != "" {
+		trackNum, _ = strconv.Atoi(promptf(s, "Track number: "))
+	}
 
 	_, err := db.NewSong(dblayer.SongMeta{
 		ID:       id,
@@ -49,32 +63,43 @@ func new(st state, args []string) {
 
 	// TODO: how to do multiline prompt?
 	// chords := prompt(s, "Chords: ")
-	cmd := exec.Command("gedit", fmt.Sprintf("%s/%s/chords.txt", st.dbPath, id))
-	err = cmd.Run()
+	cmd := exec.Command("code", fmt.Sprintf("%s/%s/chords.txt", st.dbPath, id))
+	err = cmd.Start()
 	if err != nil {
 		log.Fatalf("Error creating chords: %s", err)
 	}
+
+	// TODO: wait for editor to close, then sync
 }
 
-// prompt prints the question to stdout, then reads a line from the provided
+// promptf prints the question to stdout, then reads a line from the provided
 // scanner, and returns this value.
-func prompt(s *bufio.Scanner, q string) string {
-	fmt.Print(q)
+func promptf(s *bufio.Scanner, f string, v ...any) string {
+	fmt.Printf(f, v...)
 	s.Scan()
 	return s.Text()
 }
 
 func getID(song string) string {
 	id := ""
-	for _, c := range strings.Title(song) {
-		if isAlphanumeric(c) {
-			id += string(c)
+	words := strings.Fields(song)
+	for _, word := range words {
+		for i, c := range word {
+			if !isAlphanumeric(c) {
+				continue
+			}
+			if i == 0 {
+				id += string(unicode.ToUpper(c))
+			} else {
+				id += string(unicode.ToLower(c))
+			}
 		}
 	}
 	return id
 }
 
 // https://www.jeremymorgan.com/tutorials/go/learn-golang-casing/
+// TODO: this can't lowercase incorrectly capitalised words e.g. "The"
 func properTitle(input string) string {
 	words := strings.Split(input, " ")
 	smallwords := " a an on the to "

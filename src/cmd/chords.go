@@ -13,6 +13,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"os/exec"
 	"sort"
 
 	"github.com/barrettj12/chords/src/client"
@@ -41,6 +42,8 @@ func main() {
 		albums(st, args)
 	case "new":
 		new(st, args)
+	case "edit":
+		edit(st, args)
 	default:
 		fmt.Printf("unknown command %q\n", cmd)
 		os.Exit(1)
@@ -240,6 +243,18 @@ func albums(st state, args []string) {
 				}
 			}
 		}
+	}
+}
+
+// Open chords for editing
+//
+//	chords edit <id>
+func edit(st state, args []string) {
+	id := args[0]
+	cmd := exec.Command("code", fmt.Sprintf("%s/%s/chords.txt", st.dbPath, id))
+	err := cmd.Start()
+	if err != nil {
+		log.Fatalf("Error creating chords: %s", err)
 	}
 }
 
