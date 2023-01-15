@@ -89,9 +89,7 @@ func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler 
 	mux.HandleFunc("/b/chords", frontend.chordsHandler)
 
 	// Favicon
-	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./favicon.ico")
-	})
+	mux.HandleFunc("/favicon.ico", serveFavicon)
 
 	// Default redirect to frontend artists page
 	mux.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
@@ -310,6 +308,11 @@ func (s *ChordsAPI) updateChords(w http.ResponseWriter, r *http.Request) {
 	} else {
 		s.serverError(err, "updating chords", w)
 	}
+}
+
+// Serve favicon data in favicon.go.
+func serveFavicon(w http.ResponseWriter, _ *http.Request) {
+	w.Write(faviconData)
 }
 
 // HELPER FUNCTIONS
