@@ -15,6 +15,7 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
+	"strings"
 
 	"github.com/barrettj12/chords/src/client"
 	"github.com/barrettj12/chords/src/dblayer"
@@ -40,7 +41,7 @@ func NewFrontend(apiURL string) (*Frontend, error) {
 
 func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	artists, _ := f.client.GetArtists()
-	sort.Slice(artists, func(i, j int) bool { return artists[i] < artists[j] })
+	sortTitles(artists)
 
 	body := html.Body{}
 	body.Insert(html.NewHeading1("Artists"))
@@ -55,6 +56,22 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write([]byte(body.Render()))
+}
+
+// sortTitles sorts the given slice of titles, ignoring the articles "A", "An"
+// and "The" at the beginning.
+func sortTitles(titles []string) {
+	sort.Slice(titles, func(i, j int) bool {
+		articles := []string{"A ", "An ", "The "}
+		strip := func(s string) string {
+			for _, a := range articles {
+				s = strings.TrimPrefix(s, a)
+			}
+			return s
+		}
+
+		return strip(titles[i]) < strip(titles[j])
+	})
 }
 
 func (f *Frontend) songsHandler(w http.ResponseWriter, r *http.Request) {
