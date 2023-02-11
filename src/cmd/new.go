@@ -37,7 +37,18 @@ func new(st state, args []string) {
 		id = idResp
 	}
 
-	// TODO: check ID in DB
+	// Check ID in DB
+	for {
+		_, err := db.GetChords(id)
+		if err != nil {
+			// This ID not already in DB - OK to continue
+			break
+		}
+
+		// Song exists in DB - choose new ID
+		fmt.Printf("ID %q is taken, please choose another.\n", id)
+		id = promptf(s, "ID: ")
+	}
 
 	// TODO: use discogs API to get this metadata
 	// https://github.com/irlndts/go-discogs
