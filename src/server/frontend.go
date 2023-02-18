@@ -46,6 +46,7 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	body := html.Body{}
 	body.Insert(html.NewHeading1("Artists"))
 
+	// https://dev.to/jordanfinners/creating-a-collapsible-section-with-nothing-but-html-4ip9
 	ul := html.NewUnorderedList()
 	body.Insert(ul)
 	for _, artist := range artists {
@@ -55,6 +56,7 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 		)))
 	}
 
+	addFooter(&body)
 	w.Write([]byte(body.Render()))
 }
 
@@ -128,6 +130,7 @@ func (f *Frontend) songsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	addFooter(&body)
 	w.Write([]byte(body.Render()))
 }
 
@@ -142,7 +145,8 @@ func (f *Frontend) chordsHandler(w http.ResponseWriter, r *http.Request) {
 
 	type pageData struct{ SongTitle, Artist, Chords string }
 	p := pageData{songs[0].Name, songs[0].Artist, string(chords)}
-	t := template.Must(template.New("page").Parse(CHORDS_TEMPLATE))
+	templateWithFooter := fmt.Sprintf(CHORDS_TEMPLATE, FOOTER)
+	t := template.Must(template.New("page").Parse(templateWithFooter))
 	t.Execute(w, p)
 }
 
@@ -157,50 +161,67 @@ const CHORDS_TEMPLATE = `
 		</h1>
 	  <pre id="chords">{{.Chords}}</pre>
 
-		<b>Transpose:<b>
+		<b>Transpose:</b>
 		<button id="minus">−</button>
     <input id="semitones" value="0" readonly="" style="text-align: center; width: 4.5ch;">
     <button id="plus">+</button>
 		<button id="reset">Reset</button>
 
+		<!-- footer goes here -->
+		%s
+
 		<script type="module">
-        // Import JS backend
-        import { transpose } from "https://barrettj12.github.io/chord-transposer/js/Main.js";
+			// Import JS backend
+			import { transpose } from "https://barrettj12.github.io/chord-transposer/js/Main.js";
 
-        // Get interactive elements on the page
-        let chords = document.getElementById("chords");
-        let plus = document.getElementById("plus");
-        let minus = document.getElementById("minus");
-        let semitones = document.getElementById("semitones");
-        let reset = document.getElementById("reset");
+			// Get interactive elements on the page
+			let chords = document.getElementById("chords");
+			let plus = document.getElementById("plus");
+			let minus = document.getElementById("minus");
+			let semitones = document.getElementById("semitones");
+			let reset = document.getElementById("reset");
 
-				let originalChords = chords.innerHTML;
+			let originalChords = chords.innerHTML;
 
-        // Add event listeners
-        reset.addEventListener("click", resetTranspose);
-        plus.addEventListener("click", tuneUp);
-        minus.addEventListener("click", tuneDown);
-      
-        // Updates the textarea
-        function processChords() {
-          chords.innerHTML = transpose(originalChords, parseInt(semitones.value));
-        }
+			// Add event listeners
+			reset.addEventListener("click", resetTranspose);
+			plus.addEventListener("click", tuneUp);
+			minus.addEventListener("click", tuneDown);
+		
+			// Updates the textarea
+			function processChords() {
+				chords.innerHTML = transpose(originalChords, parseInt(semitones.value));
+			}
 
-        function resetTranspose() {
-          semitones.value = 0;
-          processChords();
-        }
+			function resetTranspose() {
+				semitones.value = 0;
+				processChords();
+			}
 
-        function tuneUp() {
-          semitones.value = (parseInt(semitones.value) + 1).toString();
-          processChords();
-        }
+			function tuneUp() {
+				semitones.value = (parseInt(semitones.value) + 1).toString();
+				processChords();
+			}
 
-        function tuneDown() {
-          semitones.value = (parseInt(semitones.value) - 1).toString();
-          processChords();
-        }
-      </script> 
+			function tuneDown() {
+				semitones.value = (parseInt(semitones.value) - 1).toString();
+				processChords();
+			}
+		</script> 
   </body>
 </html>
 `
+
+// addFooter adds a common footer to each page.
+func addFooter(body *html.Body) {
+	footer := html.String(FOOTER)
+	body.Insert(footer)
+}
+
+const FOOTER = `
+<footer>
+	<hr>
+	<p>© Jordan Barrett, 2023.</p>
+	<p>Found a bug, problem or issue? Let me know <a href="https://github.com/barrettj12/chords/issues/new" target="_blank">here</a>.</p>
+	<p>This project is open source - contribute <a href="https://github.com/barrettj12/chords" target="_blank">here</a>!</p>
+</footer>`
