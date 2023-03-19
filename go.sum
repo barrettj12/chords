@@ -1,3 +1,5 @@
+github.com/barrettj12/collections v0.0.0-20230319072748-9bd971ac9abc h1:9RW9BHnyXslDq4k2ob7F/fgVpVAJcu80vVrmZiOBPQ4=
+github.com/barrettj12/collections v0.0.0-20230319072748-9bd971ac9abc/go.mod h1:vuU687Fae4Ju1h/6+7GFV6D4PSL3N008jun6ATzx0GI=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=

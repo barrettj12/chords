@@ -11,6 +11,7 @@ import (
 	"unicode"
 
 	"github.com/barrettj12/chords/src/dblayer"
+	c "github.com/barrettj12/collections"
 )
 
 // Interactively add a new song to the local DB.
@@ -109,23 +110,35 @@ func getID(song string) string {
 	return id
 }
 
-// https://www.jeremymorgan.com/tutorials/go/learn-golang-casing/
-// TODO: this can't lowercase incorrectly capitalised words e.g. "The"
-func properTitle(input string) string {
-	words := strings.Split(input, " ")
-	smallwords := " a an on the to "
-
-	for index, word := range words {
-		if strings.Contains(smallwords, " "+word+" ") && word != string(word[0]) {
-			words[index] = word
-		} else {
-			words[index] = strings.Title(word)
-		}
-	}
-	return strings.Join(words, " ")
-}
-
 func isAlphanumeric(c rune) bool {
 	return ('0' <= c && c <= '9') ||
 		('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z')
+}
+
+func properTitle(input string) string {
+	words := strings.Split(input, " ")
+
+	// These words shouldn't be capitalised in titles
+	smallWords := c.AsSet([]string{"a", "an", "and", "for", "in", "of", "on", "or", "the", "to"})
+
+	for i, word := range words {
+		// First word should always be capitalised
+		if i == 0 || !smallWords.Contains(strings.TrimRight(word, ",")) {
+			words[i] = capitalise(word)
+		}
+	}
+
+	return strings.Join(words, " ")
+}
+
+func capitalise(word string) string {
+	var capWord string
+	for i, c := range word {
+		if i == 0 {
+			capWord += string(unicode.ToUpper(c))
+		} else {
+			capWord += string(c)
+		}
+	}
+	return capWord
 }
