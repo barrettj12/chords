@@ -18,6 +18,7 @@ import (
 
 	"github.com/barrettj12/chords/src/client"
 	"github.com/barrettj12/chords/src/dblayer"
+	"github.com/barrettj12/chords/src/util"
 )
 
 func main() {
@@ -178,8 +179,26 @@ func count(st state, args []string) {
 		counts[song.Artist]++
 	}
 
-	for artist, numSongs := range counts {
-		if len(artists) == 0 || sliceContains(artists, artist) {
+	if len(artists) == 0 {
+		for artist := range counts {
+			artists = append(artists, artist)
+		}
+	}
+
+	// Sort artists in descending order
+	sort.Slice(artists, func(i, j int) bool {
+		ci := counts[artists[i]]
+		cj := counts[artists[j]]
+
+		if ci == cj {
+			return util.LessTitle(artists[i], artists[j])
+		}
+		return ci > cj
+	})
+
+	for _, artist := range artists {
+		numSongs := counts[artist]
+		if numSongs > 0 {
 			fmt.Printf("%d\t%s\n", numSongs, artist)
 		}
 	}

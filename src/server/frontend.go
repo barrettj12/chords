@@ -15,11 +15,11 @@ import (
 	"net/http"
 	"net/url"
 	"sort"
-	"strings"
 
 	"github.com/barrettj12/chords/src/client"
 	"github.com/barrettj12/chords/src/dblayer"
 	"github.com/barrettj12/chords/src/html"
+	"github.com/barrettj12/chords/src/util"
 )
 
 type Frontend struct {
@@ -64,15 +64,7 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 // and "The" at the beginning.
 func sortTitles(titles []string) {
 	sort.Slice(titles, func(i, j int) bool {
-		articles := []string{"A ", "An ", "The "}
-		strip := func(s string) string {
-			for _, a := range articles {
-				s = strings.TrimPrefix(s, a)
-			}
-			return s
-		}
-
-		return strip(titles[i]) < strip(titles[j])
+		return util.LessTitle(titles[i], titles[j])
 	})
 }
 
