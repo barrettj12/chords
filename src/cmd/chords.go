@@ -27,24 +27,26 @@ func main() {
 	args := os.Args[2:]
 
 	switch cmd {
-	case "pull":
-		pull(args)
+	case "albums":
+		albums(st, args)
 	case "backup":
 		backup(args)
+	case "count":
+		count(st, args)
+	case "diff":
+		diff(st, args)
+	case "edit":
+		edit(st, args)
+	case "new":
+		new(st, args)
+	case "pull":
+		pull(args)
 	case "sync":
 		sync(st, args)
 	case "update-chords":
 		updateChords(st, args)
-	case "count":
-		count(st, args)
 	case "validate":
 		validate(st, args)
-	case "albums":
-		albums(st, args)
-	case "new":
-		new(st, args)
-	case "edit":
-		edit(st, args)
 	default:
 		fmt.Printf("unknown command %q\n", cmd)
 		os.Exit(1)
