@@ -33,6 +33,8 @@ func main() {
 		backup(args)
 	case "count":
 		count(st, args)
+	case "delete", "rm", "remove":
+		delete(st, args)
 	case "diff":
 		diff(st, args)
 	case "edit":
@@ -277,6 +279,21 @@ func edit(st state, args []string) {
 	if err != nil {
 		log.Fatalf("Error creating chords: %s", err)
 	}
+}
+
+// Delete a set of chords locally and remotely
+//
+//	chords delete <id>
+func delete(st state, args []string) {
+	id := args[0]
+
+	c, err := client.NewClient(st.serverURL, st.authKey)
+	check(err)
+
+	c.DeleteSong(id)
+	check(err)
+
+	// TODO: delete locally
 }
 
 // HELPER FUNCTIONS

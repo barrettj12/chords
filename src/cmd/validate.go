@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"log"
 	"os"
@@ -61,7 +62,7 @@ func validate(st state, args []string) {
 				validateMeta(fpath, entry.Name())
 			case "chords.txt":
 				chordsFound = true
-				// TODO: check chords.txt is nonempty
+				validateChords(fpath)
 			default:
 				log.Printf("WARNING: unexpected file found: %q\n", fpath)
 			}
@@ -116,4 +117,17 @@ func validateMeta(fpath, dirName string) {
 	}
 
 	// TODO: check json fmt with jq
+}
+
+func validateChords(fpath string) {
+	data, err := os.ReadFile(fpath)
+	if err != nil {
+		log.Printf("WARNING: couldn't read %q: %v\n", fpath, err)
+		return
+	}
+
+	trimmed := bytes.TrimSpace(data)
+	if len(trimmed) == 0 {
+		log.Printf("WARNING: %q: chords are empty\n", fpath)
+	}
 }
