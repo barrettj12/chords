@@ -1,9 +1,9 @@
 package main
 
 import (
-	"archive/zip"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/fs"
@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/barrettj12/chords/src/dblayer"
 )
@@ -20,42 +21,42 @@ import (
 //	chords diff
 func diff(st state, args []string) {
 	// Create temp dir to hold files
-	tempdir, err := os.MkdirTemp("", "chords-diff")
+	tempdir, err := os.MkdirTemp("", "chords-diff-")
 	check(err)
-	defer os.RemoveAll(tempdir)
+	defer func() {
+		err := os.RemoveAll(tempdir)
+		if err == nil {
+			fmt.Printf("cleaned up temp dir %s\n", tempdir)
+		} else {
+			fmt.Printf("error removing temp dir %q: %v\n", tempdir, err)
+		}
+	}()
+
 	fmt.Printf("writing files to %s\n", tempdir)
-	zipFile := filepath.Join(tempdir, "data.zip")
+	zipFile := filepath.Join(tempdir, "data.tar.gz")
 
-	// sftp connection to remote VM
-	// TODO: this takes a long time. Might be quicker to zip everything up
-	// on the VM, and copy the zip file over.
-	sshCmd := exec.Command("fly", "ssh", "sftp", "shell")
-	// sshCmd.Stdout = os.Stdout
-	// sshCmd.Stderr = os.Stderr
-	stdin, err := sshCmd.StdinPipe()
+	// Zip remote /data and pull to local machine
+	pullZippedData(zipFile)
+
+	// Extract tar archive
+	err = exec.Command("tar", "-zxvf", zipFile, "-C", tempdir).Run()
 	check(err)
-
-	check(sshCmd.Start())
-	io.WriteString(stdin, fmt.Sprintf("get /data %s\n", zipFile))
-	io.WriteString(stdin, "\x04") // exit signal
-	fmt.Println("waiting for ssh command to exit")
-	check(sshCmd.Wait())
-	fmt.Println("ssh command exited")
-
-	// Open zip file
-	zipReader, err := zip.OpenReader(zipFile)
-	check(err)
-	defer zipReader.Close()
 
 	// Initialise a map to keep track of which files exist locally/remotely
-	fileMap := make(map[string]fileInfo, len(zipReader.File))
+	fileMap := make(map[string]fileInfo, 0)
+	remoteDataDir := filepath.Join(tempdir, "data")
 
-	// Put remote files in fileMap
-	for _, f := range zipReader.File {
-		filename, err := filepath.Rel("/data/", f.Name)
-		check(err)
-		fileMap[filename] = fileInfo{remoteFile: f}
-	}
+	// Put local files in fileMap
+	filepath.WalkDir(remoteDataDir, func(path string, d fs.DirEntry, err error) error {
+		if d.Type().IsRegular() {
+			filename, err := filepath.Rel(remoteDataDir, path)
+			check(err)
+			fileMap[filename] = fileInfo{
+				existsRemotely: true,
+			}
+		}
+		return nil
+	})
 
 	// Put local files in fileMap
 	filepath.WalkDir(st.dbPath, func(path string, d fs.DirEntry, err error) error {
@@ -63,8 +64,8 @@ func diff(st state, args []string) {
 			filename, err := filepath.Rel(st.dbPath, path)
 			check(err)
 			fileMap[filename] = fileInfo{
-				existsLocally: true,
-				remoteFile:    fileMap[filename].remoteFile,
+				existsLocally:  true,
+				existsRemotely: fileMap[filename].existsRemotely,
 			}
 		}
 		return nil
@@ -78,11 +79,11 @@ func diff(st state, args []string) {
 	}
 
 	for filename, info := range fileMap {
-		if info.existsLocally && info.remoteFile == nil {
+		if info.existsLocally && !info.existsRemotely {
 			reportDiff("file %q exists locally but not remotely\n", filename)
 			continue
 		}
-		if !info.existsLocally && info.remoteFile != nil {
+		if !info.existsLocally && info.existsRemotely {
 			reportDiff("file %q exists remotely but not locally\n", filename)
 			continue
 		}
@@ -91,9 +92,7 @@ func diff(st state, args []string) {
 		localFileContents, err := os.ReadFile(filepath.Join(st.dbPath, filename))
 		check(err)
 
-		remoteFileReader, err := info.remoteFile.Open()
-		check(err)
-		remoteFileContents, err := io.ReadAll(remoteFileReader)
+		remoteFileContents, err := os.ReadFile(filepath.Join(remoteDataDir, filename))
 		check(err)
 
 		if strings.HasSuffix(filename, ".json") {
@@ -109,31 +108,88 @@ func diff(st state, args []string) {
 
 			if *localMeta != *remoteMeta {
 				reportDiff(`metadata %q is different between local and remote
-local meta: %#v
-remote meta: %#v
----------------------------------------
-`, filename, localMeta, remoteMeta)
+	local meta: %#v
+	remote meta: %#v
+	---------------------------------------
+	`, filename, localMeta, remoteMeta)
 			}
 			continue
 		}
 
 		if !bytes.Equal(localFileContents, remoteFileContents) {
 			reportDiff(`file %q is different between local and remote
---------- local -----------------------
-%s
---------- remote ----------------------
-%s
----------------------------------------
-`, filename, localFileContents, remoteFileContents)
+	--------- local -----------------------
+	%s
+	--------- remote ----------------------
+	%s
+	---------------------------------------
+	`, filename, localFileContents, remoteFileContents)
 		}
 	}
 
 	if !diffFound {
 		fmt.Println("no differences found between local and remote :)")
+	} else {
+		os.Exit(1)
 	}
 }
 
 type fileInfo struct {
-	existsLocally bool
-	remoteFile    *zip.File
+	existsLocally  bool
+	existsRemotely bool
+}
+
+func pullZippedData(localZipFile string) {
+	remoteZipFile := fmt.Sprintf("/tmp/data-%d.tar.gz", time.Now().Unix())
+
+	// SSH in and zip /data for quick file transfer
+	sshCmd := newSSHCommand("fly", "ssh", "console")
+	sshCmd.Execf("tar -zcvf %s /data\n", remoteZipFile)
+	check(sshCmd.Exit())
+
+	// Transfer zip file via sftp
+	sftpCmd := newSSHCommand("fly", "ssh", "sftp", "shell")
+	sftpCmd.Execf("get %s %s\n", remoteZipFile, localZipFile)
+	check(sftpCmd.Exit())
+
+	// TODO: delete temp file on VM
+}
+
+type sshCommand struct {
+	cmd    *exec.Cmd
+	stdin  io.WriteCloser
+	stderr *bytes.Buffer
+}
+
+func newSSHCommand(name string, args ...string) *sshCommand {
+	cmd := exec.Command(name, args...)
+	stdin, err := cmd.StdinPipe()
+	check(err)
+	stderr := &bytes.Buffer{}
+	cmd.Stderr = stderr
+
+	check(cmd.Start())
+
+	return &sshCommand{
+		cmd:    cmd,
+		stdin:  stdin,
+		stderr: stderr,
+	}
+}
+
+func (c *sshCommand) Execf(format string, v ...any) {
+	io.WriteString(c.stdin, fmt.Sprintf(format, v...))
+}
+
+func (c *sshCommand) Exit() error {
+	io.WriteString(c.stdin, "\x04") // exit signal
+	fmt.Println("waiting for ssh command to exit")
+
+	err := c.cmd.Wait()
+	if err != nil {
+		return errors.Join(err, fmt.Errorf(c.stderr.String()))
+	}
+
+	fmt.Println("ssh command exited successfully")
+	return nil
 }

@@ -303,12 +303,3 @@ func check(err error) {
 		panic(err)
 	}
 }
-
-func sliceContains[T comparable](slice []T, t T) bool {
-	for _, u := range slice {
-		if t == u {
-			return true
-		}
-	}
-	return false
-}
