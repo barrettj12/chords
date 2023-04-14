@@ -10,7 +10,8 @@ basedir
 ├─ [id2]
 │  ├─ meta.json
 │  └─ chords.txt
-...
+├─ ...
+└─ see-also.json
 ```
 
 In words: every song in the DB has a unique ID. The ID is used as the name of
@@ -34,6 +35,14 @@ the position in which the song appears on its album - this is used to display
 albums correctly on the frontend. The other fields are self-explanatory.
 
 `chords.txt` simply contains the chords in plain-text format.
+
+The `see-also.json` file lists artists who are "related" to each other, in the following format:
+```json
+[
+  ["artist1", "artist2"],
+  ...
+]
+```
 
 
 ## Alternative relational model

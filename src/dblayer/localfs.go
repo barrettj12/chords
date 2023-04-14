@@ -13,6 +13,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"math/rand"
 	"os"
@@ -47,6 +48,10 @@ func (l *localfs) GetArtists() ([]string, error) {
 	}
 
 	for _, d := range dirs {
+		if !d.Type().IsDir() {
+			continue
+		}
+
 		metaPath := filepath.Join(l.basedir, d.Name(), "meta.json")
 		data, err := os.ReadFile(metaPath)
 		if err != nil {
@@ -74,6 +79,9 @@ func (l *localfs) GetSongs(artist, id string) ([]SongMeta, error) {
 	}
 
 	for _, d := range dirs {
+		if !d.Type().IsDir() {
+			continue
+		}
 		if id != "" && d.Name() != id {
 			continue
 		}
@@ -193,4 +201,35 @@ func (l *localfs) UpdateChords(id string, chords Chords) (Chords, error) {
 	path := filepath.Join(l.basedir, id, "chords.txt")
 	os.WriteFile(path, chords, os.ModePerm)
 	return os.ReadFile(path)
+}
+
+func (l *localfs) SeeAlso(artist string) ([]string, error) {
+	path := filepath.Join(l.basedir, "see-also.json")
+	data, err := os.ReadFile(path)
+	if errors.Is(err, os.ErrNotExist) {
+		// File doesn't exist - no see also data to report
+		log.Printf("WARNING see-also.json not found")
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	seeAlsos := &[][]string{}
+	err = json.Unmarshal(data, seeAlsos)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't unmarshal see also data: %w", err)
+	}
+
+	var artists []string
+	for _, grp := range *seeAlsos {
+		if grp[0] == artist {
+			artists = append(artists, grp[1])
+		}
+		if grp[1] == artist {
+			artists = append(artists, grp[0])
+		}
+	}
+
+	return artists, nil
 }

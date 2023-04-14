@@ -51,6 +51,21 @@ func (h1 *Heading1) Render() string {
 	return fmt.Sprintf("<h1>%s</h1>", h1.heading)
 }
 
+// Heading2 is a <h2> tag.
+type Heading2 struct {
+	heading string
+}
+
+var _ Element = &Heading2{}
+
+func NewHeading2(heading string) *Heading2 {
+	return &Heading2{heading}
+}
+
+func (h2 *Heading2) Render() string {
+	return fmt.Sprintf("<h2>%s</h2>", h2.heading)
+}
+
 // Anchor is an <a> tag.
 type Anchor struct {
 	href string

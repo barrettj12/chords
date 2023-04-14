@@ -118,6 +118,18 @@ the `/api/v0/chords` endpoint - just use the corresponding method
 for `/api/v0/songs`.*
 
 
+### `GET /api/v0/see-also`
+Returns other artists related to a given artist.
+
+#### Query parameters
+| Name     | Required? | Description |
+|----------|-----------|-------------|
+| `artist` | required  | The artist for which to get related artists.
+
+#### Response body
+A list of strings representing artist names.
+
+
 ## API types
 
 ### `SongMeta`
