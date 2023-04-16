@@ -33,13 +33,31 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: superfly/flyctl-actions/setup-flyctl@master
-      
+
+      - name: Check which files changed
+        if: github.ref_name == 'main'
+        uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          # TODO: exclude test files here
+          filters: |
+            flybuild:
+              - 'src/client/**'
+              - 'src/dblayer/**'
+              - 'src/html/**'
+              - 'src/server/**'
+              - 'src/util/**'
+              - 'fly.toml'
+              - 'go.mod'
+              - 'go.sum'
+              - 'main.go'
+
       - name: flyctl deploy
         shell: bash
         run: |
           set -x
           FLAGS="--remote-only"
-          if [[ $GITHUB_REF_NAME != 'main' ]]; then
+          if [[ $GITHUB_REF_NAME != 'main' || ${{ steps.filter.outputs.flybuild }} == 'false' ]]; then
             FLAGS="$FLAGS --build-only"
           fi
 
