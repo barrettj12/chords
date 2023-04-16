@@ -10,10 +10,9 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"time"
-
-	"github.com/barrettj12/chords/src/dblayer"
 )
 
 // diff compares the local DB to remote.
@@ -98,32 +97,30 @@ func diff(st state, args []string) {
 		if strings.HasSuffix(filename, ".json") {
 			// For JSON files, the exact formatting is not important.
 			// Just check that the fields are the same.
-			localMeta := &dblayer.SongMeta{}
-			err = json.Unmarshal(localFileContents, localMeta)
+			var localData, remoteData any
+			err = json.Unmarshal(localFileContents, &localData)
+			check(err)
+			err = json.Unmarshal(remoteFileContents, &remoteData)
 			check(err)
 
-			remoteMeta := &dblayer.SongMeta{}
-			err = json.Unmarshal(remoteFileContents, remoteMeta)
-			check(err)
-
-			if *localMeta != *remoteMeta {
-				reportDiff(`metadata %q is different between local and remote
-	local meta: %#v
-	remote meta: %#v
-	---------------------------------------
-	`, filename, localMeta, remoteMeta)
+			if !reflect.DeepEqual(localData, remoteData) {
+				reportDiff(`json data %q is different between local and remote
+local data:  %#v
+remote data: %#v
+---------------------------------------
+`, filename, localData, remoteData)
 			}
 			continue
 		}
 
 		if !bytes.Equal(localFileContents, remoteFileContents) {
 			reportDiff(`file %q is different between local and remote
-	--------- local -----------------------
-	%s
-	--------- remote ----------------------
-	%s
-	---------------------------------------
-	`, filename, localFileContents, remoteFileContents)
+--------- local -----------------------
+%s
+--------- remote ----------------------
+%s
+---------------------------------------
+`, filename, localFileContents, remoteFileContents)
 		}
 	}
 
