@@ -28,6 +28,7 @@ type ChordsDB interface {
 	DeleteSong(id string) error
 	GetChords(id string) (Chords, error)
 	UpdateChords(id string, chords Chords) (Chords, error)
+	SeeAlso(artist string) ([]string, error)
 	// Close() error
 }
 

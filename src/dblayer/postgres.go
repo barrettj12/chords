@@ -124,3 +124,8 @@ func (p *postgres) UpdateChords(id string, chords Chords) (Chords, error) {
 	// 		string(data), id)
 	// 	return err
 }
+
+func (p *postgres) SeeAlso(artist string) ([]string, error) {
+	// TODO: fill this in
+	return nil, nil
+}

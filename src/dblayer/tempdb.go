@@ -99,6 +99,11 @@ func (t *tempDB) UpdateChords(id string, chords Chords) (Chords, error) {
 	return chords, nil
 }
 
+func (t *tempDB) SeeAlso(artist string) ([]string, error) {
+	// TODO: fill this in
+	return nil, nil
+}
+
 // Set type
 type set[T comparable] map[T]struct{}
 

@@ -122,6 +122,20 @@ func (f *Frontend) songsHandler(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	seeAlso, _ := f.client.SeeAlso(artist)
+	if len(seeAlso) > 0 {
+		body.Insert(html.NewHeading2("See also:"))
+
+		ulSeeAlso := html.NewUnorderedList()
+		body.Insert(ulSeeAlso)
+		for _, relatedArtist := range seeAlso {
+			ulSeeAlso.Insert(html.NewListItem(html.NewAnchor(
+				fmt.Sprintf("/b/songs?artist=%s", url.QueryEscape(relatedArtist)),
+				relatedArtist,
+			)))
+		}
+	}
+
 	addFooter(&body)
 	w.Write([]byte(body.Render()))
 }

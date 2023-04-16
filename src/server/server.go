@@ -79,9 +79,10 @@ func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler 
 	mux := http.ServeMux{}
 
 	// Register API endpoints
-	mux.HandleFunc("/api/v0/artists", api.artistsHandler) // list artists in database
-	mux.HandleFunc("/api/v0/songs", api.songsHandler)     // song metadata API
-	mux.HandleFunc("/api/v0/chords", api.chordsHandler)   // view/update a chord sheet
+	mux.HandleFunc("/api/v0/artists", api.artistsHandler)  // list artists in database
+	mux.HandleFunc("/api/v0/songs", api.songsHandler)      // song metadata API
+	mux.HandleFunc("/api/v0/chords", api.chordsHandler)    // view/update a chord sheet
+	mux.HandleFunc("/api/v0/see-also", api.seeAlsoHandler) // get related artists
 
 	// Test frontend endpoints
 	mux.HandleFunc("/b/artists", frontend.artistsHandler)
@@ -308,6 +309,24 @@ func (s *ChordsAPI) updateChords(w http.ResponseWriter, r *http.Request) {
 	} else {
 		s.serverError(err, "updating chords", w)
 	}
+}
+
+// Handles requests to the /api/v0/see-also endpoint.
+func (s *ChordsAPI) seeAlsoHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		// TODO: allow updating see also data via POST/PUT/PATCH/DELETE
+		http.Error(w, "", http.StatusMethodNotAllowed)
+		return
+	}
+
+	artist := r.URL.Query().Get("artist")
+	relatedArtists, err := s.db.SeeAlso(artist)
+	if err != nil {
+		s.serverError(err, "could not get related artists", w)
+		return
+	}
+
+	s.writeJSON(w, relatedArtists)
 }
 
 // Serve favicon data in favicon.go.

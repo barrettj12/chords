@@ -27,9 +27,10 @@ type Client struct {
 }
 
 const (
-	API_ARTISTS = "/api/v0/artists"
-	API_SONGS   = "/api/v0/songs"
-	API_CHORDS  = "/api/v0/chords"
+	API_ARTISTS  = "/api/v0/artists"
+	API_SONGS    = "/api/v0/songs"
+	API_CHORDS   = "/api/v0/chords"
+	API_SEE_ALSO = "/api/v0/see-also"
 )
 
 func NewClient(serverURL, authKey string) (*Client, error) {
@@ -169,6 +170,27 @@ func (c *Client) UpdateChords(id string, chords []byte) ([]byte, error) {
 		body:        chords,
 		contentType: "text/plain",
 	})
+}
+
+func (c *Client) SeeAlso(artist string) ([]string, error) {
+	resp, err := c.request(requestParams{
+		method: http.MethodGet,
+		path:   API_SEE_ALSO,
+		queryParams: map[string]*string{
+			"artist": &artist,
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	artists := []string{}
+	err = json.Unmarshal(resp, &artists)
+	if err != nil {
+		return nil, err
+	}
+
+	return artists, nil
 }
 
 // HELPER METHODS
