@@ -145,11 +145,12 @@ func pullZippedData(localZipFile string) {
 	check(sshCmd.Exit())
 
 	// Transfer zip file via sftp
-	sftpCmd := newSSHCommand("fly", "ssh", "sftp", "shell")
-	sftpCmd.Execf("get %s %s\n", remoteZipFile, localZipFile)
-	check(sftpCmd.Exit())
+	newSSHCommand("fly", "ssh", "sftp", "get", remoteZipFile, localZipFile).cmd.Wait()
 
-	// TODO: delete temp file on VM
+	// Delete temp file on VM
+	// rmCmd := newSSHCommand("fly", "ssh", "console")
+	// rmCmd.Execf("rm %s", remoteZipFile)
+	// check(rmCmd.Exit()) // TODO: why does it get stuck here?
 }
 
 type sshCommand struct {
