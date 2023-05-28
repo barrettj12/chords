@@ -2,10 +2,12 @@ package main
 
 import (
 	"bufio"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"unicode"
@@ -51,6 +53,12 @@ func new(st state, args []string) {
 		id = promptf(s, "ID: ")
 	}
 
+	editorCmd := exec.Command("code", "--wait", filepath.Join(st.dbPath, id, "chords.txt"))
+	err := editorCmd.Start()
+	if err != nil {
+		log.Fatalf("Error creating chords: %s", err)
+	}
+
 	// TODO: use discogs API to get this metadata
 	// https://github.com/irlndts/go-discogs
 	artist := promptf(s, "Artist: ")
@@ -62,7 +70,8 @@ func new(st state, args []string) {
 		trackNum, _ = strconv.Atoi(promptf(s, "Track number: "))
 	}
 
-	_, err := db.NewSong(dblayer.SongMeta{
+	// Create meta.json
+	data, err := json.Marshal(dblayer.SongMeta{
 		ID:       id,
 		Name:     songName,
 		Artist:   artist,
@@ -70,18 +79,24 @@ func new(st state, args []string) {
 		TrackNum: trackNum,
 	})
 	if err != nil {
-		log.Fatalf("Error writing to DB: %s", err)
+		log.Fatalf("Error marshaling JSON: %v", err)
 	}
-
-	// TODO: how to do multiline prompt?
-	// chords := prompt(s, "Chords: ")
-	cmd := exec.Command("code", fmt.Sprintf("%s/%s/chords.txt", st.dbPath, id))
-	err = cmd.Start()
+	err = os.MkdirAll(filepath.Join(st.dbPath, id), 0755)
 	if err != nil {
-		log.Fatalf("Error creating chords: %s", err)
+		log.Fatalf("Error creating folder: %v", err)
+	}
+	err = os.WriteFile(filepath.Join(st.dbPath, id, "meta.json"), data, os.ModePerm)
+	if err != nil {
+		log.Fatalf("Error writing metadata: %v", err)
 	}
 
-	// TODO: wait for editor to close, then sync
+	// Wait for editor to close, then sync
+	fmt.Println("Waiting for editor to close")
+	err = editorCmd.Wait()
+	if err != nil {
+		log.Fatalf("Error editing chords: %s", err)
+	}
+	sync(st, []string{id})
 }
 
 // promptf prints the question to stdout, then reads a line from the provided
