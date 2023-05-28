@@ -127,7 +127,9 @@ remote data: %#v
 	if !diffFound {
 		fmt.Println("no differences found between local and remote :)")
 	} else {
-		os.Exit(1)
+		// Should return with exit code 1, but this will skip deferred calls
+		// e.g. cleanup. So don't use os.Exit.
+		// os.Exit(1)
 	}
 }
 
