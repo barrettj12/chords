@@ -10,12 +10,10 @@
 package dblayer
 
 import (
-	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
-	"math/rand"
 	"os"
 	"path/filepath"
 )
@@ -111,7 +109,9 @@ func (l *localfs) GetSongs(artist, id string) ([]SongMeta, error) {
 }
 
 func (l *localfs) NewSong(meta SongMeta) (SongMeta, error) {
-	meta.ID = l.checkID(meta.ID)
+	if !l.checkID(meta.ID) {
+		return SongMeta{}, fmt.Errorf("id %q already in use", meta.ID)
+	}
 
 	// Create new dir
 	newDir := filepath.Join(l.basedir, meta.ID)
@@ -139,26 +139,10 @@ func (l *localfs) NewSong(meta SongMeta) (SongMeta, error) {
 	return meta, nil
 }
 
-// Checks if the give ID is in use already, and returns it if not.
-// If the ID is use, return a fresh ID.
-func (l *localfs) checkID(id string) string {
-	if _, err := os.Stat(filepath.Join(l.basedir, id)); errors.Is(err, os.ErrNotExist) {
-		return id
-	}
-	return l.getNewID()
-}
-
-func (l *localfs) getNewID() string {
-	for {
-		b := make([]byte, 4)
-		rand.Read(b)
-		id := hex.EncodeToString(b)
-
-		// Check this ID is not in use
-		if _, err := os.Stat(filepath.Join(l.basedir, id)); errors.Is(err, os.ErrNotExist) {
-			return id
-		}
-	}
+// checkID returns true if the given ID is available (not already in use).
+func (l *localfs) checkID(id string) bool {
+	_, err := os.Stat(filepath.Join(l.basedir, id))
+	return errors.Is(err, os.ErrNotExist)
 }
 
 func (l *localfs) UpdateSong(id string, meta SongMeta) (SongMeta, error) {
