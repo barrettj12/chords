@@ -63,9 +63,15 @@ type state struct {
 }
 
 func initState() state {
-	dbPath := "./data"
+	dbPath, ok := os.LookupEnv("DATABASE_URL")
+	if !ok {
+		dbPath = "./data"
+	}
 
-	serverURL := "https://chords.fly.dev"
+	serverURL, ok := os.LookupEnv("SERVER_URL")
+	if !ok {
+		serverURL = "https://chords.fly.dev"
+	}
 
 	authKey, err := os.ReadFile("auth_key")
 	if err != nil {
