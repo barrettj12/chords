@@ -274,11 +274,27 @@ func albums(st state, args []string) {
 //	chords edit <id>
 func edit(st state, args []string) {
 	id := args[0]
-	cmd := exec.Command("code", fmt.Sprintf("%s/%s/chords.txt", st.dbPath, id))
-	err := cmd.Start()
+	// Check if ID exists in DB
+	db := dblayer.NewLocalfs(st.dbPath, log.Default())
+	_, err := db.GetChords(id)
 	if err != nil {
-		log.Fatalf("Error creating chords: %s", err)
+		// This ID not already in DB - OK to continue
+		log.Fatalf("no chords found with ID %q", id)
 	}
+
+	editorCmd := exec.Command("code", "--wait", fmt.Sprintf("%s/%s/chords.txt", st.dbPath, id))
+	err = editorCmd.Start()
+	if err != nil {
+		log.Fatalf("Error opening chords: %s", err)
+	}
+
+	// Wait for editor to close, then sync
+	fmt.Println("Waiting for editor to close")
+	err = editorCmd.Wait()
+	if err != nil {
+		log.Fatalf("Error editing chords: %s", err)
+	}
+	sync(st, []string{id})
 }
 
 // Delete a set of chords locally and remotely
