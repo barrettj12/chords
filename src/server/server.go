@@ -86,16 +86,11 @@ func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler 
 	mux.HandleFunc("/api/v0/chords", api.chordsHandler)    // view/update a chord sheet
 	mux.HandleFunc("/api/v0/see-also", api.seeAlsoHandler) // get related artists
 
-	// Test frontend endpoints
-	mux.HandleFunc("/b/artists", frontend.artistsHandler)
-	mux.HandleFunc("/b/songs", frontend.songsHandler)
-	mux.HandleFunc("/b/chords", frontend.chordsHandler)
-
 	// Favicon
 	mux.HandleFunc("/favicon.ico", serveFavicon)
 
-	// Default redirect to frontend artists page
-	mux.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
+	// Register frontend endpoints
+	frontend.registerHandlers(mux)
 
 	return handler{
 		logger: logger,

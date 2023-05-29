@@ -39,6 +39,15 @@ func NewFrontend(apiURL string) (*Frontend, error) {
 	}, nil
 }
 
+func (f *Frontend) registerHandlers(mux http.ServeMux) {
+	mux.HandleFunc("/b/artists", f.artistsHandler)
+	mux.HandleFunc("/b/songs", f.songsHandler)
+	mux.HandleFunc("/b/chords", f.chordsHandler)
+
+	// Default redirect to frontend artists page
+	mux.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
+}
+
 func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	artists, _ := f.client.GetArtists()
 	sortTitles(artists)
