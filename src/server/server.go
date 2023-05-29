@@ -21,6 +21,8 @@ import (
 	"strings"
 
 	"github.com/barrettj12/chords/src/dblayer"
+
+	_ "embed"
 )
 
 type Server struct {
@@ -328,6 +330,9 @@ func (s *ChordsAPI) seeAlsoHandler(w http.ResponseWriter, r *http.Request) {
 
 	s.writeJSON(w, relatedArtists)
 }
+
+//go:embed favicon.ico
+var faviconData []byte
 
 // Serve favicon data in favicon.go.
 func serveFavicon(w http.ResponseWriter, _ *http.Request) {
