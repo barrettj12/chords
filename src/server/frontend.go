@@ -149,13 +149,15 @@ func (f *Frontend) chordsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	chords, _ := f.client.GetChords(id)
 
-	type pageData struct{ SongTitle, Artist, Chords string }
-	p := pageData{songs[0].Name, songs[0].Artist, string(chords)}
+	type pageData struct{ SongTitle, Artist, Chords, ID string }
+	p := pageData{songs[0].Name, songs[0].Artist, string(chords), songs[0].ID}
 	templateWithFooter := fmt.Sprintf(CHORDS_TEMPLATE, FOOTER)
 	t := template.Must(template.New("page").Parse(templateWithFooter))
 	t.Execute(w, p)
 }
 
+// TODO: the JavaScript code should go in a separate .js file
+// Arguably, so should the HTML.
 const CHORDS_TEMPLATE = `
 <html>
   <head>
@@ -165,7 +167,7 @@ const CHORDS_TEMPLATE = `
 	  <h1>
 		  {{.SongTitle}} by {{.Artist}}
 		</h1>
-	  <pre id="chords">{{.Chords}}</pre>
+	  <pre id="chords"></pre>
 
 		<b>Transpose:</b>
 		<button id="minus">−</button>
@@ -187,16 +189,22 @@ const CHORDS_TEMPLATE = `
 			let semitones = document.getElementById("semitones");
 			let reset = document.getElementById("reset");
 
-			let originalChords = chords.innerHTML;
+			let originalChords = {{.Chords}};
 
 			// Add event listeners
 			reset.addEventListener("click", resetTranspose);
 			plus.addEventListener("click", tuneUp);
 			minus.addEventListener("click", tuneDown);
+
+			// Check for cookie and restore previous transpose
+			semitones.value = document.cookie.split("; ")
+				.find((row) => row.startsWith("{{.ID}}="))?.split("=")[1] || 0;
+			processChords();
 		
 			// Updates the textarea
 			function processChords() {
 				chords.innerHTML = transpose(originalChords, parseInt(semitones.value));
+				document.cookie = "{{.ID}}="+semitones.value;
 			}
 
 			function resetTranspose() {
