@@ -43,6 +43,7 @@ func (f *Frontend) registerHandlers(mux http.ServeMux) {
 	mux.HandleFunc("/b/artists", f.artistsHandler)
 	mux.HandleFunc("/b/songs", f.songsHandler)
 	mux.HandleFunc("/b/chords", f.chordsHandler)
+	mux.HandleFunc("/b/random", f.randomHandler)
 
 	// Default redirect to frontend artists page
 	mux.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
@@ -234,6 +235,11 @@ const CHORDS_TEMPLATE = `
   </body>
 </html>
 `
+
+func (f *Frontend) randomHandler(w http.ResponseWriter, r *http.Request) {
+	song, _ := f.client.RandomSong()
+	http.Redirect(w, r, fmt.Sprintf("/b/chords?id=%s", url.QueryEscape(song.ID)), http.StatusSeeOther)
+}
 
 // addFooter adds a common footer to each page.
 func addFooter(body *html.Body) {

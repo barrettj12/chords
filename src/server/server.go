@@ -17,6 +17,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net/http"
 	"strings"
 
@@ -85,6 +86,7 @@ func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler 
 	mux.HandleFunc("/api/v0/songs", api.songsHandler)      // song metadata API
 	mux.HandleFunc("/api/v0/chords", api.chordsHandler)    // view/update a chord sheet
 	mux.HandleFunc("/api/v0/see-also", api.seeAlsoHandler) // get related artists
+	mux.HandleFunc("/api/v0/random", api.randomHandler)    // get random chords
 
 	// Favicon
 	mux.HandleFunc("/favicon.ico", serveFavicon)
@@ -324,6 +326,17 @@ func (s *ChordsAPI) seeAlsoHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	s.writeJSON(w, relatedArtists)
+}
+
+func (s *ChordsAPI) randomHandler(w http.ResponseWriter, r *http.Request) {
+	allSongs, err := s.db.GetSongs("", "")
+	if err != nil {
+		s.serverError(err, "getting songs", w)
+		return
+	}
+
+	n := rand.Intn(len(allSongs))
+	s.writeJSON(w, allSongs[n])
 }
 
 //go:embed favicon.ico

@@ -26,11 +26,14 @@ type Client struct {
 	authKey   string
 }
 
+// TODO: move these constants into a separate package that can be used by both
+// server and client.
 const (
 	API_ARTISTS  = "/api/v0/artists"
 	API_SONGS    = "/api/v0/songs"
 	API_CHORDS   = "/api/v0/chords"
 	API_SEE_ALSO = "/api/v0/see-also"
+	API_RANDOM   = "/api/v0/random"
 )
 
 func NewClient(serverURL, authKey string) (*Client, error) {
@@ -191,6 +194,20 @@ func (c *Client) SeeAlso(artist string) ([]string, error) {
 	}
 
 	return artists, nil
+}
+
+func (c *Client) RandomSong() (dblayer.SongMeta, error) {
+	song := dblayer.SongMeta{}
+	resp, err := c.request(requestParams{
+		method: http.MethodGet,
+		path:   API_RANDOM,
+	})
+	if err != nil {
+		return song, err
+	}
+
+	err = json.Unmarshal(resp, &song)
+	return song, err
 }
 
 // HELPER METHODS
