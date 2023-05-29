@@ -56,6 +56,12 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	body := html.Body{}
 	body.Insert(html.NewHeading1("Artists"))
 
+	p := html.NewParagraph()
+	p.Insert(html.String("Click "))
+	p.Insert(html.NewAnchor("/b/random", "here"))
+	p.Insert(html.String(" for a random song."))
+	body.Insert(p)
+
 	// https://dev.to/jordanfinners/creating-a-collapsible-section-with-nothing-but-html-4ip9
 	ul := html.NewUnorderedList()
 	body.Insert(ul)

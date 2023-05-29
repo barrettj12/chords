@@ -66,6 +66,30 @@ func (h2 *Heading2) Render() string {
 	return fmt.Sprintf("<h2>%s</h2>", h2.heading)
 }
 
+// Paragraph is a <p> tag.
+type Paragraph struct {
+	children []Element
+}
+
+var _ Element = &Paragraph{}
+
+func NewParagraph() *Paragraph {
+	return &Paragraph{}
+}
+
+func (b *Paragraph) Insert(e Element) {
+	b.children = append(b.children, e)
+}
+
+func (b *Paragraph) Render() string {
+	str := "<p>"
+	for _, child := range b.children {
+		str += child.Render()
+	}
+	str += "</p>"
+	return str
+}
+
 // Anchor is an <a> tag.
 type Anchor struct {
 	href string
