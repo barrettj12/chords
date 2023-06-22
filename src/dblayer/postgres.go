@@ -80,7 +80,7 @@ FROM chords
 	return artists, nil
 }
 
-func (p *postgres) GetSongs(artist, id string) ([]SongMeta, error) {
+func (p *postgres) GetSongs(artist, id, query string) ([]SongMeta, error) {
 	// TODO: fill this in
 	return nil, nil
 }

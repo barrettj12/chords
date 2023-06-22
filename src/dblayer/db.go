@@ -22,7 +22,7 @@ import (
 
 type ChordsDB interface {
 	GetArtists() ([]string, error)
-	GetSongs(artist, id string) ([]SongMeta, error)
+	GetSongs(artist, id, query string) ([]SongMeta, error)
 	NewSong(SongMeta) (SongMeta, error)
 	UpdateSong(id string, meta SongMeta) (SongMeta, error)
 	DeleteSong(id string) error

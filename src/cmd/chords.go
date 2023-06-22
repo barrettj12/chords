@@ -110,12 +110,12 @@ func sync(st state, args []string) {
 	if len(ids) == 0 {
 		// Sync all songs
 		var err error
-		songs, err = db.GetSongs("", "")
+		songs, err = db.GetSongs("", "", "")
 		check(err)
 	} else {
 		songs = make([]dblayer.SongMeta, 0, len(ids))
 		for _, id := range ids {
-			dbSongs, err := db.GetSongs("", id)
+			dbSongs, err := db.GetSongs("", id, "")
 			check(err)
 			if len(dbSongs) == 0 {
 				fmt.Printf("song %q not found\n", id)

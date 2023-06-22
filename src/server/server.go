@@ -178,8 +178,8 @@ func (s *ChordsAPI) songsHandler(w http.ResponseWriter, r *http.Request) {
 func (s *ChordsAPI) getSongs(w http.ResponseWriter, r *http.Request) {
 	artist := r.URL.Query().Get("artist")
 	id := r.URL.Query().Get("id")
-	// TODO: support search string parameter
-	songs, err := s.db.GetSongs(artist, id)
+	query := r.URL.Query().Get("query")
+	songs, err := s.db.GetSongs(artist, id, query)
 
 	if err == nil {
 		s.writeJSON(w, songs)
@@ -329,7 +329,7 @@ func (s *ChordsAPI) seeAlsoHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s *ChordsAPI) randomHandler(w http.ResponseWriter, r *http.Request) {
-	allSongs, err := s.db.GetSongs("", "")
+	allSongs, err := s.db.GetSongs("", "", "")
 	if err != nil {
 		s.serverError(err, "getting songs", w)
 		return

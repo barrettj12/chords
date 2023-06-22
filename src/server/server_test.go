@@ -143,7 +143,7 @@ func TestUpdateSong(t *testing.T) {
 	assert.Equal(t, updatedMeta, respMeta)
 
 	// Check db state
-	dbSongs, err := db.GetSongs("", id)
+	dbSongs, err := db.GetSongs("", id, "")
 	assert.Nil(t, err)
 	assert.Len(t, dbSongs, 1)
 	assert.Equal(t, dbSongs[0], respMeta)

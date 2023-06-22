@@ -16,6 +16,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"regexp"
 )
 
 // Store data in an attached filesystem
@@ -69,11 +70,19 @@ func (l *localfs) GetArtists() ([]string, error) {
 	return artists.toSlice(), nil
 }
 
-func (l *localfs) GetSongs(artist, id string) ([]SongMeta, error) {
+func (l *localfs) GetSongs(artist, id, query string) ([]SongMeta, error) {
 	songs := []SongMeta{}
 	dirs, err := os.ReadDir(l.basedir)
 	if err != nil {
 		return nil, err
+	}
+
+	var queryMatcher *regexp.Regexp
+	if query != "" {
+		queryMatcher, err = regexp.Compile("(?i)" + query) // case insensitive
+		if err != nil {
+			log.Printf("WARNING ignoring query %q: %v", query, err)
+		}
 	}
 
 	for _, d := range dirs {
@@ -100,6 +109,9 @@ func (l *localfs) GetSongs(artist, id string) ([]SongMeta, error) {
 
 		// Check if artist matches
 		if artist != "" && meta.Artist != artist {
+			continue
+		}
+		if queryMatcher != nil && !queryMatcher.MatchString(meta.Name) {
 			continue
 		}
 		songs = append(songs, *meta)

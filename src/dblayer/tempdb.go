@@ -38,20 +38,18 @@ func (t *tempDB) GetArtists() ([]string, error) {
 	return artists.toSlice(), nil
 }
 
-func (t *tempDB) GetSongs(artist, id string) ([]SongMeta, error) {
+func (t *tempDB) GetSongs(artist, id, query string) ([]SongMeta, error) {
 	songs := []SongMeta{}
 
 	for _, s := range t.data {
-		matches := true
 		if artist != "" && s.Artist != artist {
-			matches = false
+			continue
 		}
 		if id != "" && s.ID != id {
-			matches = false
+			continue
 		}
-		if matches {
-			songs = append(songs, s.SongMeta)
-		}
+		// TODO: handle `query` param
+		songs = append(songs, s.SongMeta)
 	}
 
 	return songs, nil
