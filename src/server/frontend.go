@@ -183,7 +183,7 @@ const CHORDS_TEMPLATE = `
 	  <h1>
 		  {{.SongTitle}} by {{.Artist}}
 		</h1>
-	  <pre id="chords"></pre>
+	  <pre id="chords" style="tab-size:3"></pre>
 
 		<b>Transpose:</b>
 		<button id="minus">−</button>
