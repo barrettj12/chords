@@ -16,6 +16,37 @@ type Element interface {
 	Render() string
 }
 
+// HTML is a <html> tag.
+type HTML struct {
+	*Head
+	*Body
+}
+
+var _ Element = &HTML{}
+
+func (h *HTML) Render() string {
+	str := "<html>"
+	if h.Head != nil {
+		str += h.Head.Render()
+	}
+	if h.Body != nil {
+		str += h.Body.Render()
+	}
+	str += "</html>"
+	return str
+}
+
+// Head is a <head> tag.
+type Head struct {
+	Title string
+}
+
+var _ Element = &HTML{}
+
+func (h *Head) Render() string {
+	return fmt.Sprintf("<head><title>%s</title></head>", h.Title)
+}
+
 // Body is a <body> tag.
 type Body struct {
 	children []Element

@@ -73,7 +73,11 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	addFooter(&body)
-	w.Write([]byte(body.Render()))
+	htmlDoc := html.HTML{
+		Head: &html.Head{Title: "Jordy's Chordies"},
+		Body: &body,
+	}
+	w.Write([]byte(htmlDoc.Render()))
 }
 
 // sortTitles sorts the given slice of titles, ignoring the articles "A", "An"
@@ -153,7 +157,11 @@ func (f *Frontend) songsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	addFooter(&body)
-	w.Write([]byte(body.Render()))
+	htmlDoc := html.HTML{
+		Head: &html.Head{Title: fmt.Sprintf("%s Chords", artist)},
+		Body: &body,
+	}
+	w.Write([]byte(htmlDoc.Render()))
 }
 
 func (f *Frontend) chordsHandler(w http.ResponseWriter, r *http.Request) {
@@ -177,6 +185,9 @@ func (f *Frontend) chordsHandler(w http.ResponseWriter, r *http.Request) {
 const CHORDS_TEMPLATE = `
 <html>
   <head>
+	 	<title>
+		  {{.SongTitle}} Chords | {{.Artist}}
+		</title>
 	  <script type="module" src="https://barrettj12.github.io/chord-transposer/js/Main.js"></script>
 	</head>
 	<body>
