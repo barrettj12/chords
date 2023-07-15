@@ -93,7 +93,7 @@ func setup(t *testing.T) (dblayer.ChordsDB, *server.Server, *client.Client, func
 	s, err := server.New(db, ":8080", logger, authKey)
 	assert.Nil(t, err)
 	go func() {
-		err = s.Run()
+		err := s.Run()
 		assert.Nil(t, err)
 	}()
 
