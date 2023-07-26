@@ -12,6 +12,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"os/exec"
 	"sort"
@@ -149,6 +150,7 @@ func sync(st state, args []string) {
 		check(err)
 		c.UpdateChords(localSong.ID, chords)
 		check(err)
+		fmt.Printf("%s/b/chords?id=%s\n", st.serverURL, url.QueryEscape(localSong.ID))
 	}
 }
 
