@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -143,26 +144,33 @@ func pullZippedData(localZipFile string) {
 
 	// SSH in and zip /data for quick file transfer
 	sshCmd := newSSHCommand("fly", "ssh", "console")
+	sshCmd.exitSignal = "logout\n"
 	sshCmd.Execf("tar -zcvf %s /data\n", remoteZipFile)
 	check(sshCmd.Exit())
 
 	// Transfer zip file via sftp
-	newSSHCommand("fly", "ssh", "sftp", "get", remoteZipFile, localZipFile).cmd.Wait()
+	sftpCmd := newSSHCommand("fly", "ssh", "sftp", "get", remoteZipFile, localZipFile)
+	sftpCmd.exitSignal = "\x04"
+	check(sftpCmd.Exit())
 
 	// Delete temp file on VM
-	// rmCmd := newSSHCommand("fly", "ssh", "console")
-	// rmCmd.Execf("rm %s", remoteZipFile)
-	// check(rmCmd.Exit()) // TODO: why does it get stuck here?
+	rmCmd := newSSHCommand("fly", "ssh", "console")
+	sshCmd.exitSignal = "logout\n"
+	rmCmd.Execf("rm %s", remoteZipFile)
+	// For some reason we have to force kill this, else it gets stuck.
+	check(rmCmd.cmd.Cancel())
 }
 
 type sshCommand struct {
 	cmd    *exec.Cmd
 	stdin  io.WriteCloser
 	stderr *bytes.Buffer
+
+	exitSignal string
 }
 
 func newSSHCommand(name string, args ...string) *sshCommand {
-	cmd := exec.Command(name, args...)
+	cmd := exec.CommandContext(context.Background(), name, args...)
 	stdin, err := cmd.StdinPipe()
 	check(err)
 	stderr := &bytes.Buffer{}
@@ -182,7 +190,7 @@ func (c *sshCommand) Execf(format string, v ...any) {
 }
 
 func (c *sshCommand) Exit() error {
-	io.WriteString(c.stdin, "\x04") // exit signal
+	io.WriteString(c.stdin, c.exitSignal)
 	fmt.Println("waiting for ssh command to exit")
 
 	err := c.cmd.Wait()
