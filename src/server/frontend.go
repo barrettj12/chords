@@ -118,6 +118,7 @@ func (f *Frontend) songsHandler(w http.ResponseWriter, r *http.Request) {
 	// Construct and render HTML
 	body := html.Body{}
 	body.Insert(html.NewHeading1(fmt.Sprintf("Songs by %s", artist)))
+	body.Insert(html.NewAnchor("/b/artists", "back to all artists"))
 
 	ulAlbums := html.NewUnorderedList()
 	body.Insert(ulAlbums)
@@ -173,8 +174,13 @@ func (f *Frontend) chordsHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	chords, _ := f.client.GetChords(id)
 
-	type pageData struct{ SongTitle, Artist, Chords, ID string }
-	p := pageData{songs[0].Name, songs[0].Artist, string(chords), songs[0].ID}
+	p := struct{ SongTitle, Artist, ArtistLink, Chords, ID string }{
+		SongTitle:  songs[0].Name,
+		Artist:     songs[0].Artist,
+		ArtistLink: fmt.Sprintf("/b/songs?artist=%s", url.QueryEscape(songs[0].Artist)),
+		Chords:     string(chords),
+		ID:         songs[0].ID,
+	}
 	templateWithFooter := fmt.Sprintf(CHORDS_TEMPLATE, FOOTER)
 	t := template.Must(template.New("page").Parse(templateWithFooter))
 	t.Execute(w, p)
@@ -192,7 +198,7 @@ const CHORDS_TEMPLATE = `
 	</head>
 	<body>
 	  <h1>
-		  {{.SongTitle}} by {{.Artist}}
+		  {{.SongTitle}} by <a href="{{.ArtistLink}}">{{.Artist}}</a>
 		</h1>
 	  <pre id="chords" style="tab-size:3">loading...</pre>
 
