@@ -290,7 +290,8 @@ func edit(st state, args []string) {
 		log.Fatalf("no chords found with ID %q", id)
 	}
 
-	editorCmd := exec.Command("code", "--wait", fmt.Sprintf("%s/%s/chords.txt", st.dbPath, id))
+	editor := chooseEditor()
+	editorCmd := exec.Command(editor, "--wait", fmt.Sprintf("%s/%s/chords.txt", st.dbPath, id))
 	err = editorCmd.Start()
 	if err != nil {
 		log.Fatalf("Error opening chords: %s", err)

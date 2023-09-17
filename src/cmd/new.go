@@ -53,7 +53,8 @@ func new(st state, args []string) {
 		id = promptf(s, "ID: ")
 	}
 
-	editorCmd := exec.Command("code", "--wait", filepath.Join(st.dbPath, id, "chords.txt"))
+	editor := chooseEditor()
+	editorCmd := exec.Command(editor, "--wait", filepath.Join(st.dbPath, id, "chords.txt"))
 	err := editorCmd.Start()
 	if err != nil {
 		log.Fatalf("Error creating chords: %s", err)
@@ -156,4 +157,20 @@ func capitalise(word string) string {
 		}
 	}
 	return capWord
+}
+
+// Choose an editor for the chords
+func chooseEditor() string {
+	editor := os.Getenv("CHORDS_EDITOR")
+	if editor != "" {
+		// Check the specified editor exists on path
+		path, err := exec.LookPath(editor)
+		if err != nil {
+			return path
+		}
+		fmt.Printf("WARNING: %q not found on path\n", editor)
+	}
+
+	// Default to gedit
+	return "gedit"
 }
