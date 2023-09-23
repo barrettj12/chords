@@ -53,9 +53,14 @@ func new(st state, args []string) {
 		id = promptf(s, "ID: ")
 	}
 
+	err := os.MkdirAll(filepath.Join(st.dbPath, id), 0777)
+	if err != nil {
+		log.Fatalf("Error creating chords directory: %s", err)
+	}
+
 	editor := chooseEditor()
 	editorCmd := exec.Command(editor, "--wait", filepath.Join(st.dbPath, id, "chords.txt"))
-	err := editorCmd.Start()
+	err = editorCmd.Start()
 	if err != nil {
 		log.Fatalf("Error creating chords: %s", err)
 	}
