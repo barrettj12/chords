@@ -11,7 +11,9 @@
 package tests
 
 import (
+	"fmt"
 	"log"
+	"net"
 	"os"
 	"testing"
 
@@ -90,15 +92,22 @@ func setup(t *testing.T) (dblayer.ChordsDB, *server.Server, *client.Client, func
 
 	// Set up server
 	authKey := "passwordfoo"
-	s, err := server.New(db, ":8080", logger, authKey)
+	s, err := server.New(db, ":0", logger, authKey)
+	assert.Nil(t, err)
+
+	addr, err := s.Listen()
 	assert.Nil(t, err)
 	go func() {
-		err := s.Run()
+		err := s.Serve()
 		assert.Nil(t, err)
 	}()
 
+	tcpAddr, ok := addr.(*net.TCPAddr)
+	assert.Equal(t, true, ok)
+	port := tcpAddr.Port
+
 	// Set up client
-	c, err := client.NewClient("http://localhost:8080", authKey)
+	c, err := client.NewClient(fmt.Sprintf("http://localhost:%d", port), authKey)
 	assert.Nil(t, err)
 
 	teardown := func() {
