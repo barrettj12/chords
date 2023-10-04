@@ -18,6 +18,7 @@ import (
 	"io"
 	"log"
 	"math/rand"
+	"net"
 	"net/http"
 	"strings"
 
@@ -28,6 +29,7 @@ import (
 
 type Server struct {
 	httpServer http.Server
+	listener   net.Listener
 	logger     *log.Logger
 	api        *ChordsAPI
 }
@@ -55,14 +57,37 @@ func New(db dblayer.ChordsDB, addr string, logger *log.Logger, authKey string) (
 	}, nil
 }
 
-func (s *Server) Run() error {
-	s.logger.Printf(fmt.Sprintf("Server now running at http://localhost%s", s.httpServer.Addr))
-	closeErr := s.httpServer.ListenAndServe()
+// Listen opens a network connection (non-blocking) and returns the address
+// that it's listening on.
+func (s *Server) Listen() (net.Addr, error) {
+	// copied from net/http.Server.ListenAndServe
+	addr := s.httpServer.Addr
+	ln, err := net.Listen("tcp", addr)
+	if err != nil {
+		return nil, err
+	}
+
+	s.logger.Printf("server now listening at %s", ln.Addr())
+	s.listener = ln
+	return ln.Addr(), nil
+}
+
+// Serve serves the HTTP server (blocking)
+func (s *Server) Serve() error {
+	closeErr := s.httpServer.Serve(s.listener)
 	if errors.Is(closeErr, http.ErrServerClosed) {
 		s.logger.Println("server closed")
 		return nil
 	}
 	return closeErr
+}
+
+func (s *Server) Run() error {
+	_, err := s.Listen()
+	if err != nil {
+		return err
+	}
+	return s.Serve()
 }
 
 // Shuts down the HTTP server - necessary for running tests back-to-back.
