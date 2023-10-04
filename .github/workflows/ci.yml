@@ -28,6 +28,7 @@ jobs:
     name: Deploy to Fly
     needs: [build, test]
     runs-on: ubuntu-latest
+    if: github.ref_name == 'main'
     env:
       FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
     steps:
@@ -57,7 +58,7 @@ jobs:
         run: |
           set -x
           FLAGS="--remote-only"
-          if [[ $GITHUB_REF_NAME != 'main' || ${{ steps.filter.outputs.flybuild }} == 'false' ]]; then
+          if [[ ${{ steps.filter.outputs.flybuild }} == 'false' ]]; then
             FLAGS="$FLAGS --build-only"
           fi
 
