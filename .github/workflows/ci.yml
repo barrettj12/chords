@@ -57,7 +57,7 @@ jobs:
         run: |
           set -x
           FLAGS="--remote-only"
-          if [[ $GITHUB_REF_NAME != 'main' || ${{ steps.filter.outputs.flybuild }} == 'false' ]]; then
+          if [[ "$GITHUB_REF_NAME" != 'main' || "${{ steps.filter.outputs.flybuild }}" == 'false' ]]; then
             FLAGS="$FLAGS --build-only"
           fi
 
