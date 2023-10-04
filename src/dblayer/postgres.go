@@ -129,3 +129,8 @@ func (p *postgres) SeeAlso(artist string) ([]string, error) {
 	// TODO: fill this in
 	return nil, nil
 }
+
+func (p *postgres) Search(query string) ([]SongMeta, error) {
+	// TODO: fill this in
+	return nil, nil
+}

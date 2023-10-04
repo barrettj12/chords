@@ -13,10 +13,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
+
+	"github.com/barrettj12/chords/src/search"
+	"github.com/barrettj12/chords/src/types"
 )
 
 // Store data in an attached filesystem
@@ -33,10 +37,49 @@ import (
 type localfs struct {
 	basedir string
 	log     *log.Logger
+	// Index for text search
+	index *search.Index
 }
 
 func NewLocalfs(basedir string, logger *log.Logger) ChordsDB {
-	return &localfs{basedir, logger}
+	db := &localfs{
+		basedir: basedir,
+		log:     logger,
+	}
+	db.makeIndex()
+	return db
+}
+
+// makeIndex creates a search.Index and initialises it with all the songs
+// already in the database.
+func (l *localfs) makeIndex() {
+	index, err := search.NewIndex()
+	if err != nil {
+		l.log.Printf("WARNING could not create search index: %v", err)
+		return
+	}
+	l.index = index
+
+	var dirs []fs.DirEntry
+	dirs, err = os.ReadDir(l.basedir)
+	if err != nil {
+		l.log.Printf("WARNING could not create search index: reading %q: %v", l.basedir, err)
+		return
+	}
+
+	for _, d := range dirs {
+		if !d.Type().IsDir() {
+			continue
+		}
+
+		meta, err := l.getMeta(d.Name())
+		if err != nil {
+			log.Printf("WARNING creating search index: getting metadata for ID %q: %v", d.Name(), err)
+			continue
+		}
+
+		l.index.Add(meta)
+	}
 }
 
 func (l *localfs) GetArtists() ([]string, error) {
@@ -51,19 +94,12 @@ func (l *localfs) GetArtists() ([]string, error) {
 			continue
 		}
 
-		metaPath := filepath.Join(l.basedir, d.Name(), "meta.json")
-		data, err := os.ReadFile(metaPath)
+		meta, err := l.getMeta(d.Name())
 		if err != nil {
-			log.Printf("WARNING reading file %s: %v", metaPath, err)
+			log.Printf("WARNING getting metadata for ID %q: %v", d.Name(), err)
 			continue
 		}
 
-		meta := &SongMeta{}
-		err = json.Unmarshal(data, meta)
-		if err != nil {
-			log.Printf("WARNING unmarshaling json: %v", err)
-			continue
-		}
 		artists.add(meta.Artist)
 	}
 
@@ -93,17 +129,9 @@ func (l *localfs) GetSongs(artist, id, query string) ([]SongMeta, error) {
 			continue
 		}
 
-		metaPath := filepath.Join(l.basedir, d.Name(), "meta.json")
-		data, err := os.ReadFile(metaPath)
+		meta, err := l.getMeta(d.Name())
 		if err != nil {
-			log.Printf("WARNING reading file %s: %v", metaPath, err)
-			continue
-		}
-
-		meta := &SongMeta{}
-		err = json.Unmarshal(data, meta)
-		if err != nil {
-			log.Printf("WARNING unmarshaling json: %v", err)
+			l.log.Printf("WARNING getting metadata for ID %q: %v", d.Name(), err)
 			continue
 		}
 
@@ -114,7 +142,7 @@ func (l *localfs) GetSongs(artist, id, query string) ([]SongMeta, error) {
 		if queryMatcher != nil && !queryMatcher.MatchString(meta.Name) {
 			continue
 		}
-		songs = append(songs, *meta)
+		songs = append(songs, meta)
 	}
 
 	return songs, nil
@@ -140,6 +168,12 @@ func (l *localfs) NewSong(meta SongMeta) (SongMeta, error) {
 	err = os.WriteFile(filepath.Join(newDir, "meta.json"), data, os.ModePerm)
 	if err != nil {
 		return SongMeta{}, err
+	}
+
+	// Update search index
+	err = l.index.Add(meta)
+	if err != nil {
+		l.log.Printf("WARNING error updating index: %v", err)
 	}
 
 	// Create empty chords.txt
@@ -174,6 +208,16 @@ func (l *localfs) UpdateSong(id string, meta SongMeta) (SongMeta, error) {
 		return SongMeta{}, err
 	}
 
+	// Update search index
+	err = l.index.Remove(id)
+	if err != nil {
+		l.log.Printf("WARNING error updating index: %v", err)
+	}
+	err = l.index.Add(meta)
+	if err != nil {
+		l.log.Printf("WARNING error updating index: %v", err)
+	}
+
 	return meta, nil
 }
 
@@ -181,11 +225,17 @@ func (l *localfs) DeleteSong(id string) error {
 	dir := filepath.Join(l.basedir, id)
 	err := os.RemoveAll(dir)
 
-	if errors.Is(err, os.ErrNotExist) {
-		return nil // no-op
-	} else {
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
 		return err
 	}
+
+	// Update search index
+	err = l.index.Remove(id)
+	if err != nil {
+		l.log.Printf("WARNING error updating index: %v", err)
+	}
+
+	return nil
 }
 
 func (l *localfs) GetChords(id string) (Chords, error) {
@@ -228,4 +278,39 @@ func (l *localfs) SeeAlso(artist string) ([]string, error) {
 	}
 
 	return artists, nil
+}
+
+func (l *localfs) Search(query string) ([]SongMeta, error) {
+	ids, err := l.index.Search(query)
+	if err != nil {
+		return nil, err
+	}
+
+	var songs []types.SongMeta
+	for _, id := range ids {
+		meta, err := l.getMeta(id)
+		if err != nil {
+			l.log.Printf("WARNING getting metadata for ID %q: %v", id, err)
+			continue
+		}
+		songs = append(songs, meta)
+
+		// Limit to first 10 results
+		if len(songs) >= 10 {
+			break
+		}
+	}
+
+	return songs, nil
+}
+
+func (l *localfs) getMeta(id string) (meta types.SongMeta, err error) {
+	metaPath := filepath.Join(l.basedir, id, "meta.json")
+	file, err := os.Open(metaPath)
+	if err != nil {
+		return meta, err
+	}
+
+	err = json.NewDecoder(file).Decode(&meta)
+	return meta, err
 }
