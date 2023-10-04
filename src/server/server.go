@@ -99,12 +99,12 @@ func (s *Server) Kill() error {
 // to all requests - see the ServeHTTP method below.
 type handler struct {
 	logger *log.Logger
-	mux    http.ServeMux
+	mux    *http.ServeMux
 }
 
 func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler {
 	// Set up mux
-	mux := http.ServeMux{}
+	mux := http.NewServeMux()
 
 	// Register API endpoints
 	mux.HandleFunc("/api/v0/artists", api.artistsHandler)  // list artists in database
