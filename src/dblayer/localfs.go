@@ -286,7 +286,7 @@ func (l *localfs) Search(query string) ([]SongMeta, error) {
 		return nil, err
 	}
 
-	var songs []types.SongMeta
+	songs := []types.SongMeta{}
 	for _, id := range ids {
 		meta, err := l.getMeta(id)
 		if err != nil {
