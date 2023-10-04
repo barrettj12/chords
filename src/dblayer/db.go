@@ -18,6 +18,8 @@ import (
 	"log"
 	"math/rand"
 	"strings"
+
+	"github.com/barrettj12/chords/src/types"
 )
 
 type ChordsDB interface {
@@ -29,6 +31,7 @@ type ChordsDB interface {
 	GetChords(id string) (Chords, error)
 	UpdateChords(id string, chords Chords) (Chords, error)
 	SeeAlso(artist string) ([]string, error)
+	Search(query string) ([]SongMeta, error)
 	// Close() error
 }
 
@@ -46,13 +49,7 @@ func GetDB(url string, logger *log.Logger) (ChordsDB, error) {
 	}
 }
 
-type SongMeta struct {
-	ID       string `json:"id"`
-	Name     string `json:"name"`
-	Artist   string `json:"artist"`
-	Album    string `json:"album,omitempty"`
-	TrackNum int    `json:"trackNum,omitempty"`
-}
+type SongMeta = types.SongMeta
 
 type Chords []byte
 

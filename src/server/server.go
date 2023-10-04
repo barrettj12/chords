@@ -99,12 +99,12 @@ func (s *Server) Kill() error {
 // to all requests - see the ServeHTTP method below.
 type handler struct {
 	logger *log.Logger
-	mux    http.ServeMux
+	mux    *http.ServeMux
 }
 
 func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler {
 	// Set up mux
-	mux := http.ServeMux{}
+	mux := http.NewServeMux()
 
 	// Register API endpoints
 	mux.HandleFunc("/api/v0/artists", api.artistsHandler)  // list artists in database
@@ -112,6 +112,7 @@ func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler 
 	mux.HandleFunc("/api/v0/chords", api.chordsHandler)    // view/update a chord sheet
 	mux.HandleFunc("/api/v0/see-also", api.seeAlsoHandler) // get related artists
 	mux.HandleFunc("/api/v0/random", api.randomHandler)    // get random chords
+	mux.HandleFunc("/api/v0/search", api.searchHandler)    // search chords
 
 	// Favicon
 	mux.HandleFunc("/favicon.ico", serveFavicon)
@@ -362,6 +363,27 @@ func (s *ChordsAPI) randomHandler(w http.ResponseWriter, r *http.Request) {
 
 	n := rand.Intn(len(allSongs))
 	s.writeJSON(w, allSongs[n])
+}
+
+func (s *ChordsAPI) searchHandler(w http.ResponseWriter, r *http.Request) {
+	if !r.URL.Query().Has("q") {
+		http.Error(w, `missing query param "q"`, http.StatusBadRequest)
+		return
+	}
+
+	searchQuery := r.URL.Query().Get("q")
+	if searchQuery == "" {
+		http.Error(w, `search query cannot be empty`, http.StatusBadRequest)
+		return
+	}
+
+	results, err := s.db.Search(searchQuery)
+	if err != nil {
+		s.serverError(err, "getting songs", w)
+		return
+	}
+
+	s.writeJSON(w, results)
 }
 
 //go:embed favicon.ico

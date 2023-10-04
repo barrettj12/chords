@@ -39,7 +39,7 @@ func NewFrontend(apiURL string) (*Frontend, error) {
 	}, nil
 }
 
-func (f *Frontend) registerHandlers(mux http.ServeMux) {
+func (f *Frontend) registerHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/b/artists", f.artistsHandler)
 	mux.HandleFunc("/b/songs", f.songsHandler)
 	mux.HandleFunc("/b/chords", f.chordsHandler)
