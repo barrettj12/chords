@@ -143,18 +143,21 @@ func pullZippedData(localZipFile string) {
 	remoteZipFile := fmt.Sprintf("/tmp/data-%d.tar.gz", time.Now().Unix())
 
 	// SSH in and zip /data for quick file transfer
-	sshCmd := newSSHCommand("fly", "ssh", "console")
+	sshCmd := newSSHCommand("zip /data",
+		"fly", "ssh", "console")
 	sshCmd.exitSignal = "logout\n"
 	sshCmd.Execf("tar -zcvf %s /data\n", remoteZipFile)
 	check(sshCmd.Exit())
 
 	// Transfer zip file via sftp
-	sftpCmd := newSSHCommand("fly", "ssh", "sftp", "get", remoteZipFile, localZipFile)
+	sftpCmd := newSSHCommand("file transfer",
+		"fly", "ssh", "sftp", "get", remoteZipFile, localZipFile)
 	sftpCmd.exitSignal = "\x04"
 	check(sftpCmd.Exit())
 
 	// Delete temp file on VM
-	rmCmd := newSSHCommand("fly", "ssh", "console")
+	rmCmd := newSSHCommand("cleanup tmp",
+		"fly", "ssh", "console")
 	sshCmd.exitSignal = "logout\n"
 	rmCmd.Execf("rm %s", remoteZipFile)
 	// For some reason we have to force kill this, else it gets stuck.
@@ -162,6 +165,7 @@ func pullZippedData(localZipFile string) {
 }
 
 type sshCommand struct {
+	descr  string
 	cmd    *exec.Cmd
 	stdin  io.WriteCloser
 	stderr *bytes.Buffer
@@ -169,8 +173,8 @@ type sshCommand struct {
 	exitSignal string
 }
 
-func newSSHCommand(name string, args ...string) *sshCommand {
-	cmd := exec.CommandContext(context.Background(), name, args...)
+func newSSHCommand(descr string, args ...string) *sshCommand {
+	cmd := exec.CommandContext(context.Background(), args[0], args[1:]...)
 	stdin, err := cmd.StdinPipe()
 	check(err)
 	stderr := &bytes.Buffer{}
@@ -179,6 +183,7 @@ func newSSHCommand(name string, args ...string) *sshCommand {
 	check(cmd.Start())
 
 	return &sshCommand{
+		descr:  descr,
 		cmd:    cmd,
 		stdin:  stdin,
 		stderr: stderr,
@@ -191,7 +196,7 @@ func (c *sshCommand) Execf(format string, v ...any) {
 
 func (c *sshCommand) Exit() error {
 	io.WriteString(c.stdin, c.exitSignal)
-	fmt.Println("waiting for ssh command to exit")
+	fmt.Printf("waiting for %q command to exit...\n", c.descr)
 
 	err := c.cmd.Wait()
 	if err != nil {
