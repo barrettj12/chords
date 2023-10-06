@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"net"
 	"net/http"
 	"os"
 
@@ -23,6 +24,10 @@ func main() {
 	http.Handle("/", playground.Handler("GraphQL playground", "/query"))
 	http.Handle("/query", srv)
 
-	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	log.Fatal(http.ListenAndServe(":"+port, nil))
+	ln, err := net.Listen("tcp", ":0")
+	if err != nil {
+		log.Fatalf("error from net.Listen: %v", err)
+	}
+	log.Printf("GraphQL playground serving on %v", ln.Addr())
+	log.Fatal(http.Serve(ln, nil))
 }
