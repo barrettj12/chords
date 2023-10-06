@@ -13,7 +13,7 @@ import (
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
-	"github.com/barrettj12/chords/gqlgen/graph/model"
+	"github.com/barrettj12/chords/gqlgen/types"
 	gqlparser "github.com/vektah/gqlparser/v2"
 	"github.com/vektah/gqlparser/v2/ast"
 )
@@ -80,12 +80,12 @@ type ComplexityRoot struct {
 }
 
 type QueryResolver interface {
-	Artists(ctx context.Context) ([]*model.Artist, error)
-	Artist(ctx context.Context, id string) (*model.Artist, error)
-	Albums(ctx context.Context) ([]*model.Album, error)
-	Album(ctx context.Context, id string) (*model.Album, error)
-	Songs(ctx context.Context) ([]*model.Song, error)
-	Song(ctx context.Context, id string) (*model.Song, error)
+	Artists(ctx context.Context) ([]*types.Artist, error)
+	Artist(ctx context.Context, id string) (*types.Artist, error)
+	Albums(ctx context.Context) ([]*types.Album, error)
+	Album(ctx context.Context, id string) (*types.Album, error)
+	Songs(ctx context.Context) ([]*types.Song, error)
+	Song(ctx context.Context, id string) (*types.Song, error)
 }
 
 type executableSchema struct {
@@ -507,7 +507,7 @@ func (ec *executionContext) field___Type_fields_args(ctx context.Context, rawArg
 
 // region    **************************** field.gotpl *****************************
 
-func (ec *executionContext) _Album_id(ctx context.Context, field graphql.CollectedField, obj *model.Album) (ret graphql.Marshaler) {
+func (ec *executionContext) _Album_id(ctx context.Context, field graphql.CollectedField, obj *types.Album) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Album_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -551,7 +551,7 @@ func (ec *executionContext) fieldContext_Album_id(ctx context.Context, field gra
 	return fc, nil
 }
 
-func (ec *executionContext) _Album_name(ctx context.Context, field graphql.CollectedField, obj *model.Album) (ret graphql.Marshaler) {
+func (ec *executionContext) _Album_name(ctx context.Context, field graphql.CollectedField, obj *types.Album) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Album_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -595,7 +595,7 @@ func (ec *executionContext) fieldContext_Album_name(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Album_year(ctx context.Context, field graphql.CollectedField, obj *model.Album) (ret graphql.Marshaler) {
+func (ec *executionContext) _Album_year(ctx context.Context, field graphql.CollectedField, obj *types.Album) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Album_year(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -636,7 +636,7 @@ func (ec *executionContext) fieldContext_Album_year(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Album_artist(ctx context.Context, field graphql.CollectedField, obj *model.Album) (ret graphql.Marshaler) {
+func (ec *executionContext) _Album_artist(ctx context.Context, field graphql.CollectedField, obj *types.Album) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Album_artist(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -662,9 +662,9 @@ func (ec *executionContext) _Album_artist(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Artist)
+	res := resTmp.(*types.Artist)
 	fc.Result = res
-	return ec.marshalNArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtist(ctx, field.Selections, res)
+	return ec.marshalNArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtist(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Album_artist(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -690,7 +690,7 @@ func (ec *executionContext) fieldContext_Album_artist(ctx context.Context, field
 	return fc, nil
 }
 
-func (ec *executionContext) _Album_songs(ctx context.Context, field graphql.CollectedField, obj *model.Album) (ret graphql.Marshaler) {
+func (ec *executionContext) _Album_songs(ctx context.Context, field graphql.CollectedField, obj *types.Album) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Album_songs(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -716,9 +716,9 @@ func (ec *executionContext) _Album_songs(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Song)
+	res := resTmp.([]*types.Song)
 	fc.Result = res
-	return ec.marshalNSong2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐSongᚄ(ctx, field.Selections, res)
+	return ec.marshalNSong2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐSongᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Album_songs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -748,7 +748,7 @@ func (ec *executionContext) fieldContext_Album_songs(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Artist_id(ctx context.Context, field graphql.CollectedField, obj *model.Artist) (ret graphql.Marshaler) {
+func (ec *executionContext) _Artist_id(ctx context.Context, field graphql.CollectedField, obj *types.Artist) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Artist_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -792,7 +792,7 @@ func (ec *executionContext) fieldContext_Artist_id(ctx context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _Artist_name(ctx context.Context, field graphql.CollectedField, obj *model.Artist) (ret graphql.Marshaler) {
+func (ec *executionContext) _Artist_name(ctx context.Context, field graphql.CollectedField, obj *types.Artist) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Artist_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -836,7 +836,7 @@ func (ec *executionContext) fieldContext_Artist_name(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Artist_albums(ctx context.Context, field graphql.CollectedField, obj *model.Artist) (ret graphql.Marshaler) {
+func (ec *executionContext) _Artist_albums(ctx context.Context, field graphql.CollectedField, obj *types.Artist) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Artist_albums(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -862,9 +862,9 @@ func (ec *executionContext) _Artist_albums(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Album)
+	res := resTmp.([]*types.Album)
 	fc.Result = res
-	return ec.marshalNAlbum2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐAlbumᚄ(ctx, field.Selections, res)
+	return ec.marshalNAlbum2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐAlbumᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Artist_albums(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -892,7 +892,7 @@ func (ec *executionContext) fieldContext_Artist_albums(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Artist_relatedArtists(ctx context.Context, field graphql.CollectedField, obj *model.Artist) (ret graphql.Marshaler) {
+func (ec *executionContext) _Artist_relatedArtists(ctx context.Context, field graphql.CollectedField, obj *types.Artist) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Artist_relatedArtists(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -918,9 +918,9 @@ func (ec *executionContext) _Artist_relatedArtists(ctx context.Context, field gr
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Artist)
+	res := resTmp.([]*types.Artist)
 	fc.Result = res
-	return ec.marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtistᚄ(ctx, field.Selections, res)
+	return ec.marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtistᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Artist_relatedArtists(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -972,9 +972,9 @@ func (ec *executionContext) _Query_artists(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Artist)
+	res := resTmp.([]*types.Artist)
 	fc.Result = res
-	return ec.marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtistᚄ(ctx, field.Selections, res)
+	return ec.marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtistᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_artists(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1023,9 +1023,9 @@ func (ec *executionContext) _Query_artist(ctx context.Context, field graphql.Col
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Artist)
+	res := resTmp.(*types.Artist)
 	fc.Result = res
-	return ec.marshalOArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtist(ctx, field.Selections, res)
+	return ec.marshalOArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtist(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_artist(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1088,9 +1088,9 @@ func (ec *executionContext) _Query_albums(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Album)
+	res := resTmp.([]*types.Album)
 	fc.Result = res
-	return ec.marshalNAlbum2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐAlbumᚄ(ctx, field.Selections, res)
+	return ec.marshalNAlbum2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐAlbumᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_albums(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1141,9 +1141,9 @@ func (ec *executionContext) _Query_album(ctx context.Context, field graphql.Coll
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Album)
+	res := resTmp.(*types.Album)
 	fc.Result = res
-	return ec.marshalOAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐAlbum(ctx, field.Selections, res)
+	return ec.marshalOAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐAlbum(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_album(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1208,9 +1208,9 @@ func (ec *executionContext) _Query_songs(ctx context.Context, field graphql.Coll
 		}
 		return graphql.Null
 	}
-	res := resTmp.([]*model.Song)
+	res := resTmp.([]*types.Song)
 	fc.Result = res
-	return ec.marshalNSong2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐSongᚄ(ctx, field.Selections, res)
+	return ec.marshalNSong2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐSongᚄ(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_songs(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1263,9 +1263,9 @@ func (ec *executionContext) _Query_song(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Song)
+	res := resTmp.(*types.Song)
 	fc.Result = res
-	return ec.marshalOSong2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐSong(ctx, field.Selections, res)
+	return ec.marshalOSong2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐSong(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Query_song(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1435,7 +1435,7 @@ func (ec *executionContext) fieldContext_Query___schema(ctx context.Context, fie
 	return fc, nil
 }
 
-func (ec *executionContext) _Song_id(ctx context.Context, field graphql.CollectedField, obj *model.Song) (ret graphql.Marshaler) {
+func (ec *executionContext) _Song_id(ctx context.Context, field graphql.CollectedField, obj *types.Song) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Song_id(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1479,7 +1479,7 @@ func (ec *executionContext) fieldContext_Song_id(ctx context.Context, field grap
 	return fc, nil
 }
 
-func (ec *executionContext) _Song_name(ctx context.Context, field graphql.CollectedField, obj *model.Song) (ret graphql.Marshaler) {
+func (ec *executionContext) _Song_name(ctx context.Context, field graphql.CollectedField, obj *types.Song) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Song_name(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1523,7 +1523,7 @@ func (ec *executionContext) fieldContext_Song_name(ctx context.Context, field gr
 	return fc, nil
 }
 
-func (ec *executionContext) _Song_artist(ctx context.Context, field graphql.CollectedField, obj *model.Song) (ret graphql.Marshaler) {
+func (ec *executionContext) _Song_artist(ctx context.Context, field graphql.CollectedField, obj *types.Song) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Song_artist(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1546,9 +1546,9 @@ func (ec *executionContext) _Song_artist(ctx context.Context, field graphql.Coll
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Artist)
+	res := resTmp.(*types.Artist)
 	fc.Result = res
-	return ec.marshalOArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtist(ctx, field.Selections, res)
+	return ec.marshalOArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtist(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Song_artist(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1574,7 +1574,7 @@ func (ec *executionContext) fieldContext_Song_artist(ctx context.Context, field 
 	return fc, nil
 }
 
-func (ec *executionContext) _Song_album(ctx context.Context, field graphql.CollectedField, obj *model.Song) (ret graphql.Marshaler) {
+func (ec *executionContext) _Song_album(ctx context.Context, field graphql.CollectedField, obj *types.Song) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Song_album(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1597,9 +1597,9 @@ func (ec *executionContext) _Song_album(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*model.Album)
+	res := resTmp.(*types.Album)
 	fc.Result = res
-	return ec.marshalOAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐAlbum(ctx, field.Selections, res)
+	return ec.marshalOAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐAlbum(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) fieldContext_Song_album(ctx context.Context, field graphql.CollectedField) (fc *graphql.FieldContext, err error) {
@@ -1627,7 +1627,7 @@ func (ec *executionContext) fieldContext_Song_album(ctx context.Context, field g
 	return fc, nil
 }
 
-func (ec *executionContext) _Song_trackNum(ctx context.Context, field graphql.CollectedField, obj *model.Song) (ret graphql.Marshaler) {
+func (ec *executionContext) _Song_trackNum(ctx context.Context, field graphql.CollectedField, obj *types.Song) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Song_trackNum(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -1668,7 +1668,7 @@ func (ec *executionContext) fieldContext_Song_trackNum(ctx context.Context, fiel
 	return fc, nil
 }
 
-func (ec *executionContext) _Song_chords(ctx context.Context, field graphql.CollectedField, obj *model.Song) (ret graphql.Marshaler) {
+func (ec *executionContext) _Song_chords(ctx context.Context, field graphql.CollectedField, obj *types.Song) (ret graphql.Marshaler) {
 	fc, err := ec.fieldContext_Song_chords(ctx, field)
 	if err != nil {
 		return graphql.Null
@@ -3495,7 +3495,7 @@ func (ec *executionContext) fieldContext___Type_specifiedByURL(ctx context.Conte
 
 var albumImplementors = []string{"Album"}
 
-func (ec *executionContext) _Album(ctx context.Context, sel ast.SelectionSet, obj *model.Album) graphql.Marshaler {
+func (ec *executionContext) _Album(ctx context.Context, sel ast.SelectionSet, obj *types.Album) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, albumImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3551,7 +3551,7 @@ func (ec *executionContext) _Album(ctx context.Context, sel ast.SelectionSet, ob
 
 var artistImplementors = []string{"Artist"}
 
-func (ec *executionContext) _Artist(ctx context.Context, sel ast.SelectionSet, obj *model.Artist) graphql.Marshaler {
+func (ec *executionContext) _Artist(ctx context.Context, sel ast.SelectionSet, obj *types.Artist) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, artistImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -3778,7 +3778,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 
 var songImplementors = []string{"Song"}
 
-func (ec *executionContext) _Song(ctx context.Context, sel ast.SelectionSet, obj *model.Song) graphql.Marshaler {
+func (ec *executionContext) _Song(ctx context.Context, sel ast.SelectionSet, obj *types.Song) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, songImplementors)
 
 	out := graphql.NewFieldSet(fields)
@@ -4157,7 +4157,7 @@ func (ec *executionContext) ___Type(ctx context.Context, sel ast.SelectionSet, o
 
 // region    ***************************** type.gotpl *****************************
 
-func (ec *executionContext) marshalNAlbum2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐAlbumᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Album) graphql.Marshaler {
+func (ec *executionContext) marshalNAlbum2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐAlbumᚄ(ctx context.Context, sel ast.SelectionSet, v []*types.Album) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4181,7 +4181,7 @@ func (ec *executionContext) marshalNAlbum2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchor
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐAlbum(ctx, sel, v[i])
+			ret[i] = ec.marshalNAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐAlbum(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4201,7 +4201,7 @@ func (ec *executionContext) marshalNAlbum2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchor
 	return ret
 }
 
-func (ec *executionContext) marshalNAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐAlbum(ctx context.Context, sel ast.SelectionSet, v *model.Album) graphql.Marshaler {
+func (ec *executionContext) marshalNAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐAlbum(ctx context.Context, sel ast.SelectionSet, v *types.Album) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4211,7 +4211,7 @@ func (ec *executionContext) marshalNAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchords�
 	return ec._Album(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtistᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Artist) graphql.Marshaler {
+func (ec *executionContext) marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtistᚄ(ctx context.Context, sel ast.SelectionSet, v []*types.Artist) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4235,7 +4235,7 @@ func (ec *executionContext) marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋcho
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtist(ctx, sel, v[i])
+			ret[i] = ec.marshalNArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtist(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4255,7 +4255,7 @@ func (ec *executionContext) marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋcho
 	return ret
 }
 
-func (ec *executionContext) marshalNArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtist(ctx context.Context, sel ast.SelectionSet, v *model.Artist) graphql.Marshaler {
+func (ec *executionContext) marshalNArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtist(ctx context.Context, sel ast.SelectionSet, v *types.Artist) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4295,7 +4295,7 @@ func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.Selec
 	return res
 }
 
-func (ec *executionContext) marshalNSong2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐSongᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.Song) graphql.Marshaler {
+func (ec *executionContext) marshalNSong2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐSongᚄ(ctx context.Context, sel ast.SelectionSet, v []*types.Song) graphql.Marshaler {
 	ret := make(graphql.Array, len(v))
 	var wg sync.WaitGroup
 	isLen1 := len(v) == 1
@@ -4319,7 +4319,7 @@ func (ec *executionContext) marshalNSong2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchord
 			if !isLen1 {
 				defer wg.Done()
 			}
-			ret[i] = ec.marshalNSong2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐSong(ctx, sel, v[i])
+			ret[i] = ec.marshalNSong2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐSong(ctx, sel, v[i])
 		}
 		if isLen1 {
 			f(i)
@@ -4339,7 +4339,7 @@ func (ec *executionContext) marshalNSong2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchord
 	return ret
 }
 
-func (ec *executionContext) marshalNSong2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐSong(ctx context.Context, sel ast.SelectionSet, v *model.Song) graphql.Marshaler {
+func (ec *executionContext) marshalNSong2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐSong(ctx context.Context, sel ast.SelectionSet, v *types.Song) graphql.Marshaler {
 	if v == nil {
 		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
 			ec.Errorf(ctx, "the requested element is null which the schema does not allow")
@@ -4617,14 +4617,14 @@ func (ec *executionContext) marshalN__TypeKind2string(ctx context.Context, sel a
 	return res
 }
 
-func (ec *executionContext) marshalOAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐAlbum(ctx context.Context, sel ast.SelectionSet, v *model.Album) graphql.Marshaler {
+func (ec *executionContext) marshalOAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐAlbum(ctx context.Context, sel ast.SelectionSet, v *types.Album) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
 	return ec._Album(ctx, sel, v)
 }
 
-func (ec *executionContext) marshalOArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐArtist(ctx context.Context, sel ast.SelectionSet, v *model.Artist) graphql.Marshaler {
+func (ec *executionContext) marshalOArtist2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtist(ctx context.Context, sel ast.SelectionSet, v *types.Artist) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}
@@ -4673,7 +4673,7 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 	return res
 }
 
-func (ec *executionContext) marshalOSong2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋgraphᚋmodelᚐSong(ctx context.Context, sel ast.SelectionSet, v *model.Song) graphql.Marshaler {
+func (ec *executionContext) marshalOSong2ᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐSong(ctx context.Context, sel ast.SelectionSet, v *types.Song) graphql.Marshaler {
 	if v == nil {
 		return graphql.Null
 	}

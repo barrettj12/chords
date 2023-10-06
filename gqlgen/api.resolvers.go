@@ -8,36 +8,36 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/barrettj12/chords/gqlgen/graph/model"
+	"github.com/barrettj12/chords/gqlgen/types"
 )
 
 // Artists is the resolver for the artists field.
-func (r *queryResolver) Artists(ctx context.Context) ([]*model.Artist, error) {
+func (r *queryResolver) Artists(ctx context.Context) ([]*types.Artist, error) {
 	panic(fmt.Errorf("not implemented: Artists - artists"))
 }
 
 // Artist is the resolver for the artist field.
-func (r *queryResolver) Artist(ctx context.Context, id string) (*model.Artist, error) {
+func (r *queryResolver) Artist(ctx context.Context, id string) (*types.Artist, error) {
 	panic(fmt.Errorf("not implemented: Artist - artist"))
 }
 
 // Albums is the resolver for the albums field.
-func (r *queryResolver) Albums(ctx context.Context) ([]*model.Album, error) {
+func (r *queryResolver) Albums(ctx context.Context) ([]*types.Album, error) {
 	panic(fmt.Errorf("not implemented: Albums - albums"))
 }
 
 // Album is the resolver for the album field.
-func (r *queryResolver) Album(ctx context.Context, id string) (*model.Album, error) {
+func (r *queryResolver) Album(ctx context.Context, id string) (*types.Album, error) {
 	panic(fmt.Errorf("not implemented: Album - album"))
 }
 
 // Songs is the resolver for the songs field.
-func (r *queryResolver) Songs(ctx context.Context) ([]*model.Song, error) {
+func (r *queryResolver) Songs(ctx context.Context) ([]*types.Song, error) {
 	panic(fmt.Errorf("not implemented: Songs - songs"))
 }
 
 // Song is the resolver for the song field.
-func (r *queryResolver) Song(ctx context.Context, id string) (*model.Song, error) {
+func (r *queryResolver) Song(ctx context.Context, id string) (*types.Song, error) {
 	panic(fmt.Errorf("not implemented: Song - song"))
 }
 
