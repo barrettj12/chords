@@ -1,4 +1,4 @@
-package graph
+package gqlgen
 
 // This file will be automatically regenerated based on the schema, any resolver implementations
 // will be copied through when generating and any unknown code will be moved to the end.
@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/barrettj12/chords/gqlgen/graph"
 	"github.com/barrettj12/chords/gqlgen/graph/model"
 )
 
@@ -41,7 +42,7 @@ func (r *queryResolver) Song(ctx context.Context, id string) (*model.Song, error
 	panic(fmt.Errorf("not implemented: Song - song"))
 }
 
-// Query returns QueryResolver implementation.
-func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
+// Query returns graph.QueryResolver implementation.
+func (r *Resolver) Query() graph.QueryResolver { return &queryResolver{r} }
 
 type queryResolver struct{ *Resolver }
