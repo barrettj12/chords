@@ -13,7 +13,7 @@ import (
 
 // Artists is the resolver for the artists field.
 func (r *queryResolver) Artists(ctx context.Context) ([]*types.Artist, error) {
-	panic(fmt.Errorf("not implemented: Artists - artists"))
+	return r.DB.ArtistsV1(ctx)
 }
 
 // Artist is the resolver for the artist field.

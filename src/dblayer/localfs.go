@@ -10,6 +10,7 @@
 package dblayer
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -19,6 +20,7 @@ import (
 	"path/filepath"
 	"regexp"
 
+	gqltypes "github.com/barrettj12/chords/gqlgen/types"
 	"github.com/barrettj12/chords/src/search"
 	"github.com/barrettj12/chords/src/types"
 )
@@ -41,7 +43,7 @@ type localfs struct {
 	index *search.Index
 }
 
-func NewLocalfs(basedir string, logger *log.Logger) ChordsDB {
+func NewLocalfs(basedir string, logger *log.Logger) *localfs {
 	db := &localfs{
 		basedir: basedir,
 		log:     logger,
@@ -74,7 +76,7 @@ func (l *localfs) makeIndex() {
 
 		meta, err := l.getMeta(d.Name())
 		if err != nil {
-			log.Printf("WARNING creating search index: getting metadata for ID %q: %v", d.Name(), err)
+			l.log.Printf("WARNING creating search index: getting metadata for ID %q: %v", d.Name(), err)
 			continue
 		}
 
@@ -96,7 +98,7 @@ func (l *localfs) GetArtists() ([]string, error) {
 
 		meta, err := l.getMeta(d.Name())
 		if err != nil {
-			log.Printf("WARNING getting metadata for ID %q: %v", d.Name(), err)
+			l.log.Printf("WARNING getting metadata for ID %q: %v", d.Name(), err)
 			continue
 		}
 
@@ -117,7 +119,7 @@ func (l *localfs) GetSongs(artist, id, query string) ([]SongMeta, error) {
 	if query != "" {
 		queryMatcher, err = regexp.Compile("(?i)" + query) // case insensitive
 		if err != nil {
-			log.Printf("WARNING ignoring query %q: %v", query, err)
+			l.log.Printf("WARNING ignoring query %q: %v", query, err)
 		}
 	}
 
@@ -254,7 +256,7 @@ func (l *localfs) SeeAlso(artist string) ([]string, error) {
 	data, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
 		// File doesn't exist - no see also data to report
-		log.Printf("WARNING see-also.json not found")
+		l.log.Printf("WARNING see-also.json not found")
 		return nil, nil
 	}
 	if err != nil {
@@ -313,4 +315,38 @@ func (l *localfs) getMeta(id string) (meta types.SongMeta, err error) {
 
 	err = json.NewDecoder(file).Decode(&meta)
 	return meta, err
+}
+
+// ArtistsV1 implements ChordsDBv1.
+func (l *localfs) ArtistsV1(ctx context.Context) ([]*gqltypes.Artist, error) {
+	artistNames, err := l.GetArtists()
+	if err != nil {
+		return nil, err
+	}
+
+	//// Generate see also map
+	//seeAlsoMap := map[string][]string{}
+	//
+	//seeAlsoPath := filepath.Join(l.basedir, "see-also.json")
+	//seeAlsoFile, err := os.Open(seeAlsoPath)
+	//seeAlsos := [][]string{}
+	//err = json.NewDecoder(seeAlsoFile).Decode(&seeAlsos)
+	//if err != nil {
+	//	l.log.Printf("WARNING couldn't unmarshal see also data: %v", err)
+	//}
+	//
+	//for _, grp := range seeAlsos {
+	//	seeAlsoMap[grp[0]] = append(seeAlsoMap[grp[0]], grp[1])
+	//	seeAlsoMap[grp[1]] = append(seeAlsoMap[grp[1]], grp[0])
+	//}
+
+	// Generate returned data
+	var artists []*gqltypes.Artist
+	for _, name := range artistNames {
+		artists = append(artists, &gqltypes.Artist{
+			Name: name,
+			// TODO: how to put in albums / related artists?
+		})
+	}
+	return artists, nil
 }
