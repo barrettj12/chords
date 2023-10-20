@@ -51,6 +51,14 @@
         }
 
         suggestionsHTML.innerHTML = ''
+
+        if (suggestionsJSON.length == 0) {
+          let row = suggestionsHTML.insertRow()
+          let cell = row.insertCell()
+          cell.setAttribute('style', "border: 1px solid black")
+          cell.innerHTML = "No results found."
+        }
+
         for (let song of suggestionsJSON) {
           let row = suggestionsHTML.insertRow()
           let cell = row.insertCell()
@@ -64,6 +72,7 @@
           link.setAttribute('style', "text-decoration: none; color: black")
           cell.appendChild(link);
         }
+
         suggestionsHTML.setAttribute('data-last-updated', timestamp.toJSON())
       }
 		</script> 
