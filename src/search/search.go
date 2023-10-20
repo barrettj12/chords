@@ -1,8 +1,11 @@
 package search
 
 import (
+	"strings"
+
 	"github.com/barrettj12/chords/src/types"
 	"github.com/blevesearch/bleve"
+	"github.com/blevesearch/bleve/search/query"
 )
 
 type Index struct {
@@ -32,7 +35,16 @@ func (i *Index) Remove(id string) error {
 }
 
 func (i *Index) Search(rawQuery string) (ids []string, err error) {
-	query := bleve.NewPrefixQuery(rawQuery)
+	words := strings.Split(rawQuery, " ")
+	termQueries := make([]query.Query, 0, len(words))
+	for _, w := range words {
+		if w == "" {
+			continue
+		}
+		termQueries = append(termQueries, bleve.NewPrefixQuery(w))
+	}
+
+	query := bleve.NewConjunctionQuery(termQueries...)
 	search := bleve.NewSearchRequest(query)
 
 	searchResults, err := i.bleveIndex.Search(search)
