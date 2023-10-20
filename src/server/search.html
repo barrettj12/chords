@@ -22,22 +22,31 @@
       let suggestionsHTML = document.getElementById("suggestions")
 
       searchBar.addEventListener("input", fillSuggestions);
-      async function fillSuggestions(event) {
-        if (!searchBar.value) {
+      async function fillSuggestions() {
+        let query = searchBar.value
+        let timestamp = new Date()
+
+        if (!query) {
           // Search bar is empty, so exit early without calling API.
           suggestionsHTML.innerHTML = ''
+          suggestionsHTML.setAttribute('data-last-updated', timestamp.toJSON())
           return
         }
         
         let resp = await fetch("/api/v0/search?" + new URLSearchParams({
-          q: searchBar.value,
+          q: query,
         }))
         let suggestionsJSON = await resp.json()
 
-        // If the search bar has been emptied while we were waiting for the
-        // API response, then we don't wanna show suggestions.
-        if (!searchBar.value) {
-          suggestionsHTML.innerHTML = ''
+        // It's possible that while we've been waiting, another request has
+        // already been initiated, returned, and the suggestions updated.
+        // If so, we don't want to overwrite suggestions from a later request.
+        // Get the timestamp to check if this is the case.
+        let lastUpdatedString = suggestionsHTML.getAttribute('data-last-updated')
+        // For the first search, the 'data-last-updated' attribute is not
+        // defined, but then the date is parsed as 1/1/1970, which still works.
+        let lastUpdated = new Date(lastUpdatedString)
+        if (lastUpdated > timestamp) {
           return
         }
 
@@ -55,6 +64,7 @@
           link.setAttribute('style', "text-decoration: none; color: black")
           cell.appendChild(link);
         }
+        suggestionsHTML.setAttribute('data-last-updated', timestamp.toJSON())
       }
 		</script> 
   </body>
