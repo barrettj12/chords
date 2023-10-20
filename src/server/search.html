@@ -23,12 +23,9 @@
 
       searchBar.addEventListener("input", fillSuggestions);
       async function fillSuggestions(event) {
-        // Remove old suggestions
-        suggestionsHTML.innerHTML = ''
-
-        let query = searchBar.value
-        if (!query) {
-          // Don't make an API request
+        if (!searchBar.value) {
+          // Search bar is empty, so exit early without calling API.
+          suggestionsHTML.innerHTML = ''
           return
         }
         
@@ -37,6 +34,14 @@
         }))
         let suggestionsJSON = await resp.json()
 
+        // If the search bar has been emptied while we were waiting for the
+        // API response, then we don't wanna show suggestions.
+        if (!searchBar.value) {
+          suggestionsHTML.innerHTML = ''
+          return
+        }
+
+        suggestionsHTML.innerHTML = ''
         for (let song of suggestionsJSON) {
           let row = suggestionsHTML.insertRow()
           let cell = row.insertCell()
