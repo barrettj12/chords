@@ -10,6 +10,7 @@
 package server
 
 import (
+	_ "embed"
 	"fmt"
 	"html/template"
 	"net/http"
@@ -44,6 +45,7 @@ func (f *Frontend) registerHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/b/songs", f.songsHandler)
 	mux.HandleFunc("/b/chords", f.chordsHandler)
 	mux.HandleFunc("/b/random", f.randomHandler)
+	mux.HandleFunc("/b/search", f.searchHandler)
 
 	// Default redirect to frontend artists page
 	mux.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
@@ -57,9 +59,9 @@ func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
 	body.Insert(html.NewHeading1("Artists"))
 
 	p := html.NewParagraph()
-	p.Insert(html.String("Click "))
-	p.Insert(html.NewAnchor("/b/random", "here"))
-	p.Insert(html.String(" for a random song."))
+	p.Insert(html.NewAnchor("/b/search", "search"))
+	p.Insert(html.String(" · "))
+	p.Insert(html.NewAnchor("/b/random", "random song"))
 	body.Insert(p)
 
 	// https://dev.to/jordanfinners/creating-a-collapsible-section-with-nothing-but-html-4ip9
@@ -262,6 +264,13 @@ const CHORDS_TEMPLATE = `
 func (f *Frontend) randomHandler(w http.ResponseWriter, r *http.Request) {
 	song, _ := f.client.RandomSong()
 	http.Redirect(w, r, fmt.Sprintf("/b/chords?id=%s", url.QueryEscape(song.ID)), http.StatusSeeOther)
+}
+
+//go:embed search.html
+var searchPageHTML []byte
+
+func (f *Frontend) searchHandler(w http.ResponseWriter, r *http.Request) {
+	w.Write(searchPageHTML)
 }
 
 // addFooter adds a common footer to each page.

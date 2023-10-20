@@ -1,0 +1,56 @@
+<html>
+  <head>
+	 	<title>
+		  Search | Jordy's Chordies
+		</title>
+	</head>
+	<body>
+	  <h1>Search</h1>
+
+    <input id="search-bar" type="text" placeholder="Search...">
+    <table id="suggestions" style="border-collapse: collapse"></table>
+	  
+    <footer>
+      <hr>
+      <p>© Jordan Barrett, 2023.</p>
+      <p>Found a bug, problem or issue? Let me know <a href="https://github.com/barrettj12/chords/issues/new" target="_blank">here</a>.</p>
+      <p>This project is open source - contribute <a href="https://github.com/barrettj12/chords" target="_blank">here</a>!</p>
+    </footer>
+
+		<script type="module">
+			let searchBar = document.getElementById("search-bar");
+      let suggestionsHTML = document.getElementById("suggestions")
+
+      searchBar.addEventListener("input", fillSuggestions);
+      async function fillSuggestions(event) {
+        // Remove old suggestions
+        suggestionsHTML.innerHTML = ''
+
+        let query = searchBar.value
+        if (!query) {
+          // Don't make an API request
+          return
+        }
+        
+        let resp = await fetch("/api/v0/search?" + new URLSearchParams({
+          q: searchBar.value,
+        }))
+        let suggestionsJSON = await resp.json()
+
+        for (let song of suggestionsJSON) {
+          let row = suggestionsHTML.insertRow()
+          let cell = row.insertCell()
+          cell.setAttribute('style', "border: 1px solid black")
+          
+          let link = document.createElement('a');
+          link.innerText = `${song.name} · ${song.artist} · ${song.album}`;
+          link.setAttribute('href', "/b/chords?" + new URLSearchParams({
+            id: song.id,
+          }));
+          link.setAttribute('style', "text-decoration: none; color: black")
+          cell.appendChild(link);
+        }
+      }
+		</script> 
+  </body>
+</html>
