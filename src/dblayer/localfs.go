@@ -10,7 +10,6 @@
 package dblayer
 
 import (
-	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -20,7 +19,6 @@ import (
 	"path/filepath"
 	"regexp"
 
-	gqltypes "github.com/barrettj12/chords/gqlgen/types"
 	"github.com/barrettj12/chords/src/search"
 	"github.com/barrettj12/chords/src/types"
 )
@@ -315,38 +313,4 @@ func (l *localfs) getMeta(id string) (meta types.SongMeta, err error) {
 
 	err = json.NewDecoder(file).Decode(&meta)
 	return meta, err
-}
-
-// ArtistsV1 implements ChordsDBv1.
-func (l *localfs) ArtistsV1(ctx context.Context) ([]*gqltypes.Artist, error) {
-	artistNames, err := l.GetArtists()
-	if err != nil {
-		return nil, err
-	}
-
-	//// Generate see also map
-	//seeAlsoMap := map[string][]string{}
-	//
-	//seeAlsoPath := filepath.Join(l.basedir, "see-also.json")
-	//seeAlsoFile, err := os.Open(seeAlsoPath)
-	//seeAlsos := [][]string{}
-	//err = json.NewDecoder(seeAlsoFile).Decode(&seeAlsos)
-	//if err != nil {
-	//	l.log.Printf("WARNING couldn't unmarshal see also data: %v", err)
-	//}
-	//
-	//for _, grp := range seeAlsos {
-	//	seeAlsoMap[grp[0]] = append(seeAlsoMap[grp[0]], grp[1])
-	//	seeAlsoMap[grp[1]] = append(seeAlsoMap[grp[1]], grp[0])
-	//}
-
-	// Generate returned data
-	var artists []*gqltypes.Artist
-	for _, name := range artistNames {
-		artists = append(artists, &gqltypes.Artist{
-			Name: name,
-			// TODO: how to put in albums / related artists?
-		})
-	}
-	return artists, nil
 }

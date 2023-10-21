@@ -23,7 +23,10 @@ func main() {
 
 	// Set up DB
 	dbURL := os.Getenv("DATABASE_URL")
-	db := dblayer.GetDBv1(dbURL, logger)
+	db, err := dblayer.GetDBv1(dbURL, logger)
+	if err != nil {
+		log.Fatalf("error getting DB: %v", err)
+	}
 
 	srv := handler.NewDefaultServer(gqlgen.NewExecutableSchema(gqlgen.Config{
 		Resolvers: &gqlgen.Resolver{
