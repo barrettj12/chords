@@ -10,7 +10,8 @@ import (
 
 // ChordsDBv1 is the data abstraction used for the chords v1 API.
 type ChordsDBv1 interface {
-	ArtistsV1(ctx context.Context) ([]*gqltypes.Artist, error)
+	Artists(context.Context) ([]*gqltypes.Artist, error)
+	RelatedArtists(context.Context, *gqltypes.Artist) ([]*gqltypes.Artist, error)
 }
 
 func GetDBv1(url string, logger *log.Logger) (ChordsDBv1, error) {
@@ -26,7 +27,7 @@ type ChordsDBv1Shim struct {
 	db ChordsDB
 }
 
-func (db *ChordsDBv1Shim) ArtistsV1(ctx context.Context) ([]*gqltypes.Artist, error) {
+func (db *ChordsDBv1Shim) Artists(ctx context.Context) ([]*gqltypes.Artist, error) {
 	artistNames, err := db.db.GetArtists()
 	if err != nil {
 		return nil, err
@@ -51,11 +52,29 @@ func (db *ChordsDBv1Shim) ArtistsV1(ctx context.Context) ([]*gqltypes.Artist, er
 	// Generate returned data
 	var artists []*gqltypes.Artist
 	for _, name := range artistNames {
-		artists = append(artists, &gqltypes.Artist{
-			ID:   util.MakeID(name),
-			Name: name,
-			// TODO: how to put in albums / related artists?
-		})
+		artists = append(artists, db.getArtistByName(name))
 	}
 	return artists, nil
+}
+
+func (db *ChordsDBv1Shim) RelatedArtists(ctx context.Context, artist *gqltypes.Artist) ([]*gqltypes.Artist, error) {
+	seeAlso, err := db.db.SeeAlso(artist.Name)
+	if err != nil {
+		return nil, err
+	}
+
+	// Generate returned data
+	var artists []*gqltypes.Artist
+	for _, name := range seeAlso {
+		artists = append(artists, db.getArtistByName(name))
+	}
+	return artists, nil
+}
+
+func (db *ChordsDBv1Shim) getArtistByName(name string) *gqltypes.Artist {
+	return &gqltypes.Artist{
+		ID:   util.MakeID(name),
+		Name: name,
+		// TODO: how to put in albums / related artists?
+	}
 }

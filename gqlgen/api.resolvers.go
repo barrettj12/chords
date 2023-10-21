@@ -11,9 +11,14 @@ import (
 	"github.com/barrettj12/chords/gqlgen/types"
 )
 
+// RelatedArtists is the resolver for the relatedArtists field.
+func (r *artistResolver) RelatedArtists(ctx context.Context, obj *types.Artist) ([]*types.Artist, error) {
+	return r.DB.RelatedArtists(ctx, obj)
+}
+
 // Artists is the resolver for the artists field.
 func (r *queryResolver) Artists(ctx context.Context) ([]*types.Artist, error) {
-	return r.DB.ArtistsV1(ctx)
+	return r.DB.Artists(ctx)
 }
 
 // Artist is the resolver for the artist field.
@@ -41,7 +46,11 @@ func (r *queryResolver) Song(ctx context.Context, id string) (*types.Song, error
 	panic(fmt.Errorf("not implemented: Song - song"))
 }
 
+// Artist returns ArtistResolver implementation.
+func (r *Resolver) Artist() ArtistResolver { return &artistResolver{r} }
+
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+type artistResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
