@@ -35,9 +35,9 @@ func LessTitle(title1, title2 string) bool {
 
 // MakeID converts the provided title into a suggested ID.
 // Effectively, this converts it to PascalCase.
-func MakeID(song string) string {
+func MakeID(title string) string {
 	id := ""
-	words := strings.Fields(song)
+	words := strings.Fields(title)
 	for _, word := range words {
 		for i, c := range word {
 			if !isAlphanumeric(c) {

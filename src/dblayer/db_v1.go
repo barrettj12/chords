@@ -5,6 +5,7 @@ import (
 	"log"
 
 	gqltypes "github.com/barrettj12/chords/gqlgen/types"
+	"github.com/barrettj12/chords/src/util"
 )
 
 // ChordsDBv1 is the data abstraction used for the chords v1 API.
@@ -51,6 +52,7 @@ func (db *ChordsDBv1Shim) ArtistsV1(ctx context.Context) ([]*gqltypes.Artist, er
 	var artists []*gqltypes.Artist
 	for _, name := range artistNames {
 		artists = append(artists, &gqltypes.Artist{
+			ID:   util.MakeID(name),
 			Name: name,
 			// TODO: how to put in albums / related artists?
 		})
