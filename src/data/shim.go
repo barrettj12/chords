@@ -56,16 +56,60 @@ func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]
 }
 
 func (db *ChordsDBv1Shim) Albums(_ context.Context, filters AlbumsFilters) ([]Album, error) {
-	//TODO implement me
-	panic("implement me")
+	// Get album info from song metadata
+	songs, err := db.db.GetSongs("", "", "")
+	if err != nil {
+		return nil, err
+	}
+
+	// map album name -> Album struct
+	albums := map[string]*Album{}
+	for _, song := range songs {
+		if song.Album == "" {
+			continue
+		}
+
+		if albums[song.Album] == nil {
+			// Make new Album
+			albums[song.Album] = &Album{
+				ID:     MakeAlbumID(song.Album),
+				Name:   song.Album,
+				Artist: MakeArtistID(song.Artist),
+				Songs:  []SongID{},
+			}
+		}
+
+		albums[song.Album].Songs = append(albums[song.Album].Songs, SongID(song.ID))
+	}
+
+	albumsSlice := []Album{}
+	for _, album := range albums {
+		albumsSlice = append(albumsSlice, *album)
+	}
+	return albumsSlice, nil
 }
 
 func (db *ChordsDBv1Shim) Songs(_ context.Context, filters SongsFilters) ([]Song, error) {
-	//TODO implement me
-	panic("implement me")
-}
+	rawSongs, err := db.db.GetSongs("", "", "")
+	if err != nil {
+		return nil, err
+	}
 
-var _ ChordsDBv1 = &ChordsDBv1Shim{}
+	songs := []Song{}
+	for _, song := range rawSongs {
+		chords, _ := db.db.GetChords(song.ID)
+
+		songs = append(songs, Song{
+			ID:       SongID(song.ID),
+			Name:     song.Name,
+			Artist:   MakeArtistID(song.Artist),
+			Album:    MakeAlbumID(song.Album),
+			TrackNum: song.TrackNum,
+			Chords:   chords,
+		})
+	}
+	return songs, nil
+}
 
 // Convert an artist name into a "fake" ArtistID
 func MakeArtistID(artistName string) ArtistID {
