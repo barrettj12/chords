@@ -14,6 +14,7 @@ type ChordsDBv1 interface {
 }
 
 type ArtistsFilters struct {
+	ID        ArtistID
 	RelatedTo ArtistID
 }
 

@@ -38,16 +38,22 @@ func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]
 
 	artists := []Artist{}
 	for _, artistName := range artistNames {
+		id := MakeArtistID(artistName)
+		if filters.ID != "" && id != filters.ID {
+			// We requested a specific artist by ID, this is not it
+			continue
+		}
+
 		// Get "see also" data to fill related artists
 		seeAlso, _ := db.db.SeeAlso(artistName)
 
 		relatedArtists := []ArtistID{}
 		relatedToFilterPassed := false
 		for _, relatedArtist := range seeAlso {
-			id := MakeArtistID(relatedArtist)
-			relatedArtists = append(relatedArtists, id)
+			relatedID := MakeArtistID(relatedArtist)
+			relatedArtists = append(relatedArtists, relatedID)
 
-			if id == filters.RelatedTo {
+			if relatedID == filters.RelatedTo {
 				relatedToFilterPassed = true
 			}
 		}
@@ -58,7 +64,7 @@ func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]
 		}
 
 		artists = append(artists, Artist{
-			ID:             MakeArtistID(artistName),
+			ID:             id,
 			Name:           artistName,
 			Albums:         albums[artistName].Slice(),
 			RelatedArtists: relatedArtists,
