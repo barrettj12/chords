@@ -15,7 +15,7 @@ import (
 // RelatedArtists is the resolver for the relatedArtists field.
 func (r *artistResolver) RelatedArtists(ctx context.Context, obj *types.Artist) ([]*types.Artist, error) {
 	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
-		RelatedTo: obj.ID,
+		RelatedTo: data.ArtistID(obj.ID),
 	})
 	if err != nil {
 		return nil, err

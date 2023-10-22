@@ -13,7 +13,6 @@ type ChordsDBv1Shim struct {
 	db dblayer.ChordsDB
 }
 
-// TODO: handle RelatedTo filter
 func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]Artist, error) {
 	artistNames, err := db.db.GetArtists()
 	if err != nil {
@@ -41,9 +40,21 @@ func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]
 	for _, artistName := range artistNames {
 		// Get "see also" data to fill related artists
 		seeAlso, _ := db.db.SeeAlso(artistName)
+
 		relatedArtists := []ArtistID{}
+		relatedToFilterPassed := false
 		for _, relatedArtist := range seeAlso {
-			relatedArtists = append(relatedArtists, MakeArtistID(relatedArtist))
+			id := MakeArtistID(relatedArtist)
+			relatedArtists = append(relatedArtists, id)
+
+			if id == filters.RelatedTo {
+				relatedToFilterPassed = true
+			}
+		}
+		if filters.RelatedTo != "" && !relatedToFilterPassed {
+			// We've been asked for artists related to X, but this artist is not
+			// related to X. So skip it.
+			continue
 		}
 
 		artists = append(artists, Artist{

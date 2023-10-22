@@ -14,7 +14,7 @@ type ChordsDBv1 interface {
 }
 
 type ArtistsFilters struct {
-	RelatedTo string
+	RelatedTo ArtistID
 }
 
 type AlbumsFilters struct{}
