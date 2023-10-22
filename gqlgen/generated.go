@@ -38,8 +38,10 @@ type Config struct {
 }
 
 type ResolverRoot interface {
+	Album() AlbumResolver
 	Artist() ArtistResolver
 	Query() QueryResolver
+	Song() SongResolver
 }
 
 type DirectiveRoot struct {
@@ -80,7 +82,12 @@ type ComplexityRoot struct {
 	}
 }
 
+type AlbumResolver interface {
+	Artist(ctx context.Context, obj *types.Album) (*types.Artist, error)
+	Songs(ctx context.Context, obj *types.Album) ([]*types.Song, error)
+}
 type ArtistResolver interface {
+	Albums(ctx context.Context, obj *types.Artist) ([]*types.Album, error)
 	RelatedArtists(ctx context.Context, obj *types.Artist) ([]*types.Artist, error)
 }
 type QueryResolver interface {
@@ -90,6 +97,10 @@ type QueryResolver interface {
 	Album(ctx context.Context, id string) (*types.Album, error)
 	Songs(ctx context.Context) ([]*types.Song, error)
 	Song(ctx context.Context, id string) (*types.Song, error)
+}
+type SongResolver interface {
+	Artist(ctx context.Context, obj *types.Song) (*types.Artist, error)
+	Album(ctx context.Context, obj *types.Song) (*types.Album, error)
 }
 
 type executableSchema struct {
@@ -654,7 +665,7 @@ func (ec *executionContext) _Album_artist(ctx context.Context, field graphql.Col
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Artist, nil
+		return ec.resolvers.Album().Artist(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -675,8 +686,8 @@ func (ec *executionContext) fieldContext_Album_artist(ctx context.Context, field
 	fc = &graphql.FieldContext{
 		Object:     "Album",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -708,7 +719,7 @@ func (ec *executionContext) _Album_songs(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Songs, nil
+		return ec.resolvers.Album().Songs(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -729,8 +740,8 @@ func (ec *executionContext) fieldContext_Album_songs(ctx context.Context, field 
 	fc = &graphql.FieldContext{
 		Object:     "Album",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -854,7 +865,7 @@ func (ec *executionContext) _Artist_albums(ctx context.Context, field graphql.Co
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Albums, nil
+		return ec.resolvers.Artist().Albums(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -875,8 +886,8 @@ func (ec *executionContext) fieldContext_Artist_albums(ctx context.Context, fiel
 	fc = &graphql.FieldContext{
 		Object:     "Artist",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -1541,7 +1552,7 @@ func (ec *executionContext) _Song_artist(ctx context.Context, field graphql.Coll
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Artist, nil
+		return ec.resolvers.Song().Artist(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1559,8 +1570,8 @@ func (ec *executionContext) fieldContext_Song_artist(ctx context.Context, field 
 	fc = &graphql.FieldContext{
 		Object:     "Song",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -1592,7 +1603,7 @@ func (ec *executionContext) _Song_album(ctx context.Context, field graphql.Colle
 	}()
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Album, nil
+		return ec.resolvers.Song().Album(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -1610,8 +1621,8 @@ func (ec *executionContext) fieldContext_Song_album(ctx context.Context, field g
 	fc = &graphql.FieldContext{
 		Object:     "Song",
 		Field:      field,
-		IsMethod:   false,
-		IsResolver: false,
+		IsMethod:   true,
+		IsResolver: true,
 		Child: func(ctx context.Context, field graphql.CollectedField) (*graphql.FieldContext, error) {
 			switch field.Name {
 			case "id":
@@ -3511,25 +3522,87 @@ func (ec *executionContext) _Album(ctx context.Context, sel ast.SelectionSet, ob
 		case "id":
 			out.Values[i] = ec._Album_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Album_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "year":
 			out.Values[i] = ec._Album_year(ctx, field, obj)
 		case "artist":
-			out.Values[i] = ec._Album_artist(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Album_artist(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "songs":
-			out.Values[i] = ec._Album_songs(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				out.Invalids++
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Album_songs(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -3575,10 +3648,41 @@ func (ec *executionContext) _Artist(ctx context.Context, sel ast.SelectionSet, o
 				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "albums":
-			out.Values[i] = ec._Artist_albums(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				atomic.AddUint32(&out.Invalids, 1)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Artist_albums(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&fs.Invalids, 1)
+				}
+				return res
 			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "relatedArtists":
 			field := field
 
@@ -3825,23 +3929,85 @@ func (ec *executionContext) _Song(ctx context.Context, sel ast.SelectionSet, obj
 		case "id":
 			out.Values[i] = ec._Song_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "name":
 			out.Values[i] = ec._Song_name(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		case "artist":
-			out.Values[i] = ec._Song_artist(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Song_artist(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "album":
-			out.Values[i] = ec._Song_album(ctx, field, obj)
+			field := field
+
+			innerFunc := func(ctx context.Context, fs *graphql.FieldSet) (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Song_album(ctx, field, obj)
+				return res
+			}
+
+			if field.Deferrable != nil {
+				dfs, ok := deferred[field.Deferrable.Label]
+				di := 0
+				if ok {
+					dfs.AddField(field)
+					di = len(dfs.Values) - 1
+				} else {
+					dfs = graphql.NewFieldSet([]graphql.CollectedField{field})
+					deferred[field.Deferrable.Label] = dfs
+				}
+				dfs.Concurrently(di, func(ctx context.Context) graphql.Marshaler {
+					return innerFunc(ctx, dfs)
+				})
+
+				// don't run the out.Concurrently() call below
+				out.Values[i] = graphql.Null
+				continue
+			}
+
+			out.Concurrently(i, func(ctx context.Context) graphql.Marshaler { return innerFunc(ctx, out) })
 		case "trackNum":
 			out.Values[i] = ec._Song_trackNum(ctx, field, obj)
 		case "chords":
 			out.Values[i] = ec._Song_chords(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				out.Invalids++
+				atomic.AddUint32(&out.Invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -4244,6 +4410,10 @@ func (ec *executionContext) marshalNAlbum2ᚖgithubᚗcomᚋbarrettj12ᚋchords�
 		return graphql.Null
 	}
 	return ec._Album(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNArtist2githubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtist(ctx context.Context, sel ast.SelectionSet, v types.Artist) graphql.Marshaler {
+	return ec._Artist(ctx, sel, &v)
 }
 
 func (ec *executionContext) marshalNArtist2ᚕᚖgithubᚗcomᚋbarrettj12ᚋchordsᚋgqlgenᚋtypesᚐArtistᚄ(ctx context.Context, sel ast.SelectionSet, v []*types.Artist) graphql.Marshaler {

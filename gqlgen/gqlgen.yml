@@ -87,5 +87,21 @@ models:
       - github.com/99designs/gqlgen/graphql.Int32
   Artist:
     fields:
+      albums:
+        resolver: true
       relatedArtists:
         resolver: true
+  Album:
+    fields:
+      artist:
+        resolver: true
+      songs:
+        resolver: true
+  Song:
+    fields:
+      artist:
+        resolver: true
+      album:
+        resolver: true
+#      chords:
+#        resolver: true

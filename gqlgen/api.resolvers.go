@@ -12,6 +12,21 @@ import (
 	"github.com/barrettj12/chords/src/data"
 )
 
+// Artist is the resolver for the artist field.
+func (r *albumResolver) Artist(ctx context.Context, obj *types.Album) (*types.Artist, error) {
+	panic(fmt.Errorf("not implemented: Artist - artist"))
+}
+
+// Songs is the resolver for the songs field.
+func (r *albumResolver) Songs(ctx context.Context, obj *types.Album) ([]*types.Song, error) {
+	panic(fmt.Errorf("not implemented: Songs - songs"))
+}
+
+// Albums is the resolver for the albums field.
+func (r *artistResolver) Albums(ctx context.Context, obj *types.Artist) ([]*types.Album, error) {
+	panic(fmt.Errorf("not implemented: Albums - albums"))
+}
+
 // RelatedArtists is the resolver for the relatedArtists field.
 func (r *artistResolver) RelatedArtists(ctx context.Context, obj *types.Artist) ([]*types.Artist, error) {
 	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
@@ -67,11 +82,29 @@ func (r *queryResolver) Song(ctx context.Context, id string) (*types.Song, error
 	panic(fmt.Errorf("not implemented: Song - song"))
 }
 
+// Artist is the resolver for the artist field.
+func (r *songResolver) Artist(ctx context.Context, obj *types.Song) (*types.Artist, error) {
+	panic(fmt.Errorf("not implemented: Artist - artist"))
+}
+
+// Album is the resolver for the album field.
+func (r *songResolver) Album(ctx context.Context, obj *types.Song) (*types.Album, error) {
+	panic(fmt.Errorf("not implemented: Album - album"))
+}
+
+// Album returns AlbumResolver implementation.
+func (r *Resolver) Album() AlbumResolver { return &albumResolver{r} }
+
 // Artist returns ArtistResolver implementation.
 func (r *Resolver) Artist() ArtistResolver { return &artistResolver{r} }
 
 // Query returns QueryResolver implementation.
 func (r *Resolver) Query() QueryResolver { return &queryResolver{r} }
 
+// Song returns SongResolver implementation.
+func (r *Resolver) Song() SongResolver { return &songResolver{r} }
+
+type albumResolver struct{ *Resolver }
 type artistResolver struct{ *Resolver }
 type queryResolver struct{ *Resolver }
+type songResolver struct{ *Resolver }
