@@ -13,6 +13,7 @@ type ChordsDBv1Shim struct {
 	db dblayer.ChordsDB
 }
 
+// TODO: handle RelatedTo filter
 func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]Artist, error) {
 	artistNames, err := db.db.GetArtists()
 	if err != nil {

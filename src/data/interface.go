@@ -13,7 +13,9 @@ type ChordsDBv1 interface {
 	Songs(context.Context, SongsFilters) ([]Song, error)
 }
 
-type ArtistsFilters struct{}
+type ArtistsFilters struct {
+	RelatedTo string
+}
 
 type AlbumsFilters struct{}
 

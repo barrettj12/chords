@@ -9,16 +9,27 @@ import (
 	"fmt"
 
 	"github.com/barrettj12/chords/gqlgen/types"
+	"github.com/barrettj12/chords/src/data"
 )
 
 // RelatedArtists is the resolver for the relatedArtists field.
 func (r *artistResolver) RelatedArtists(ctx context.Context, obj *types.Artist) ([]*types.Artist, error) {
-	return r.DB.RelatedArtists(ctx, obj)
+	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
+		RelatedTo: obj.ID,
+	})
+	if err != nil {
+		return nil, err
+	}
+	return r.translateArtists(artistsData), nil
 }
 
 // Artists is the resolver for the artists field.
 func (r *queryResolver) Artists(ctx context.Context) ([]*types.Artist, error) {
-	return r.DB.Artists(ctx)
+	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{})
+	if err != nil {
+		return nil, err
+	}
+	return r.translateArtists(artistsData), nil
 }
 
 // Artist is the resolver for the artist field.

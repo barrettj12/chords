@@ -10,7 +10,7 @@ import (
 	"github.com/99designs/gqlgen/graphql/handler"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/barrettj12/chords/gqlgen"
-	"github.com/barrettj12/chords/src/dblayer"
+	"github.com/barrettj12/chords/src/data"
 )
 
 func main() {
@@ -23,7 +23,7 @@ func main() {
 
 	// Set up DB
 	dbURL := os.Getenv("DATABASE_URL")
-	db, err := dblayer.GetDBv1(dbURL, logger)
+	db, err := data.GetDBv1(dbURL, logger)
 	if err != nil {
 		log.Fatalf("error getting DB: %v", err)
 	}
