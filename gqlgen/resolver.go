@@ -10,7 +10,8 @@ type Resolver struct {
 	DB data.ChordsDBv1
 }
 
-// General purpose resolvers, which
+// General purpose resolvers, which handle the raw response from the DB
+// (including error handling)
 
 // resolveArtist converts a []data.Artist (which should only have 0 or 1
 // elements) into a *types.Artist, and also handles errors from the DB.
