@@ -41,7 +41,7 @@ type localfs struct {
 	index *search.Index
 }
 
-func NewLocalfs(basedir string, logger *log.Logger) ChordsDB {
+func NewLocalfs(basedir string, logger *log.Logger) *localfs {
 	db := &localfs{
 		basedir: basedir,
 		log:     logger,
@@ -74,7 +74,7 @@ func (l *localfs) makeIndex() {
 
 		meta, err := l.getMeta(d.Name())
 		if err != nil {
-			log.Printf("WARNING creating search index: getting metadata for ID %q: %v", d.Name(), err)
+			l.log.Printf("WARNING creating search index: getting metadata for ID %q: %v", d.Name(), err)
 			continue
 		}
 
@@ -96,7 +96,7 @@ func (l *localfs) GetArtists() ([]string, error) {
 
 		meta, err := l.getMeta(d.Name())
 		if err != nil {
-			log.Printf("WARNING getting metadata for ID %q: %v", d.Name(), err)
+			l.log.Printf("WARNING getting metadata for ID %q: %v", d.Name(), err)
 			continue
 		}
 
@@ -117,7 +117,7 @@ func (l *localfs) GetSongs(artist, id, query string) ([]SongMeta, error) {
 	if query != "" {
 		queryMatcher, err = regexp.Compile("(?i)" + query) // case insensitive
 		if err != nil {
-			log.Printf("WARNING ignoring query %q: %v", query, err)
+			l.log.Printf("WARNING ignoring query %q: %v", query, err)
 		}
 	}
 
@@ -254,7 +254,7 @@ func (l *localfs) SeeAlso(artist string) ([]string, error) {
 	data, err := os.ReadFile(path)
 	if errors.Is(err, os.ErrNotExist) {
 		// File doesn't exist - no see also data to report
-		log.Printf("WARNING see-also.json not found")
+		l.log.Printf("WARNING see-also.json not found")
 		return nil, nil
 	}
 	if err != nil {

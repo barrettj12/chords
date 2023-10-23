@@ -13,6 +13,7 @@ import (
 	"unicode"
 
 	"github.com/barrettj12/chords/src/dblayer"
+	"github.com/barrettj12/chords/src/util"
 	c "github.com/barrettj12/collections"
 )
 
@@ -33,7 +34,7 @@ func new(st state, args []string) {
 		}
 	}
 
-	id := getID(songName)
+	id := util.MakeID(songName)
 	fmt.Printf("Suggested ID: %s\n", id)
 	idResp := promptf(s, "ID (enter to use default): ")
 	if idResp != "" {
@@ -111,29 +112,6 @@ func promptf(s *bufio.Scanner, f string, v ...any) string {
 	fmt.Printf(f, v...)
 	s.Scan()
 	return s.Text()
-}
-
-func getID(song string) string {
-	id := ""
-	words := strings.Fields(song)
-	for _, word := range words {
-		for i, c := range word {
-			if !isAlphanumeric(c) {
-				continue
-			}
-			if i == 0 {
-				id += string(unicode.ToUpper(c))
-			} else {
-				id += string(unicode.ToLower(c))
-			}
-		}
-	}
-	return id
-}
-
-func isAlphanumeric(c rune) bool {
-	return ('0' <= c && c <= '9') ||
-		('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z')
 }
 
 func properTitle(input string) string {

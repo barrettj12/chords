@@ -22,6 +22,7 @@ import (
 	"github.com/barrettj12/chords/src/types"
 )
 
+// ChordsDB is the data abstraction used for the chords v0 API.
 type ChordsDB interface {
 	GetArtists() ([]string, error)
 	GetSongs(artist, id, query string) ([]SongMeta, error)

@@ -9,7 +9,10 @@
 
 package util
 
-import "strings"
+import (
+	"strings"
+	"unicode"
+)
 
 // LessTitle compares two titles and returns true if title1 is alphabetically
 // before title2, ignoring preceding articles (e.g. "a", "an", "the").
@@ -28,4 +31,29 @@ func LessTitle(title1, title2 string) bool {
 	}
 
 	return strip(title1) < strip(title2)
+}
+
+// MakeID converts the provided title into a suggested ID.
+// Effectively, this converts it to PascalCase.
+func MakeID(title string) string {
+	id := ""
+	words := strings.Fields(title)
+	for _, word := range words {
+		for i, c := range word {
+			if !isAlphanumeric(c) {
+				continue
+			}
+			if i == 0 {
+				id += string(unicode.ToUpper(c))
+			} else {
+				id += string(unicode.ToLower(c))
+			}
+		}
+	}
+	return id
+}
+
+func isAlphanumeric(c rune) bool {
+	return ('0' <= c && c <= '9') ||
+		('A' <= c && c <= 'Z') || ('a' <= c && c <= 'z')
 }
