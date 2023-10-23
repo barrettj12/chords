@@ -134,7 +134,17 @@ func (r *queryResolver) Song(ctx context.Context, id string) (*types.Song, error
 
 // Artist is the resolver for the artist field.
 func (r *songResolver) Artist(ctx context.Context, obj *types.Song) (*types.Artist, error) {
-	panic(fmt.Errorf("not implemented: Artist - artist"))
+	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
+		Song: data.SongID(obj.ID),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(artistsData) == 0 {
+		return nil, nil
+	}
+	return r.translateArtist(artistsData[0]), nil
 }
 
 // Album is the resolver for the album field.

@@ -17,6 +17,7 @@ type ArtistsFilters struct {
 	ID        ArtistID
 	RelatedTo ArtistID
 	Album     AlbumID
+	Song      SongID
 }
 
 type AlbumsFilters struct {

@@ -26,14 +26,21 @@ func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]
 	}
 
 	albums := map[string]*collections.Set[AlbumID]{}
+	songMap := map[string]*collections.Set[SongID]{}
 	for _, song := range songs {
 		if song.Artist == "" {
 			continue
 		}
+
 		if albums[song.Artist] == nil {
 			albums[song.Artist] = collections.NewSet[AlbumID](0)
 		}
 		albums[song.Artist].Add(MakeAlbumID(song.Album))
+
+		if songMap[song.Artist] == nil {
+			songMap[song.Artist] = collections.NewSet[SongID](0)
+		}
+		songMap[song.Artist].Add(SongID(song.ID))
 	}
 
 	artists := []Artist{}
@@ -45,6 +52,10 @@ func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]
 		}
 		if filters.Album != "" && !albums[artistName].Contains(filters.Album) {
 			// We requested the artist who created a given album, this is not it
+			continue
+		}
+		if filters.Song != "" && !songMap[artistName].Contains(filters.Song) {
+			// We requested the artist who created a given song, this is not it
 			continue
 		}
 
