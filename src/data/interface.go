@@ -24,7 +24,8 @@ type AlbumsFilters struct {
 }
 
 type SongsFilters struct {
-	ID SongID
+	ID    SongID
+	Album AlbumID
 }
 
 func GetDBv1(url string, logger *log.Logger) (ChordsDBv1, error) {

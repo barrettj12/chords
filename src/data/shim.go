@@ -123,13 +123,19 @@ func (db *ChordsDBv1Shim) Songs(_ context.Context, filters SongsFilters) ([]Song
 
 	songs := []Song{}
 	for _, song := range rawSongs {
+		albumID := MakeAlbumID(song.Album)
+		if filters.Album != "" && albumID != filters.Album {
+			// We requested songs for a given album, which doesn't include this song
+			continue
+		}
+
 		chords, _ := db.db.GetChords(song.ID)
 
 		songs = append(songs, Song{
 			ID:       SongID(song.ID),
 			Name:     song.Name,
 			Artist:   MakeArtistID(song.Artist),
-			Album:    MakeAlbumID(song.Album),
+			Album:    albumID,
 			TrackNum: song.TrackNum,
 			Chords:   chords,
 		})
