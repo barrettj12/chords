@@ -20,7 +20,8 @@ type ArtistsFilters struct {
 }
 
 type AlbumsFilters struct {
-	ID AlbumID
+	ID     AlbumID
+	Artist ArtistID
 }
 
 type SongsFilters struct {
