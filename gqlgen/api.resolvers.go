@@ -13,152 +13,80 @@ import (
 
 // Artist is the resolver for the artist field.
 func (r *albumResolver) Artist(ctx context.Context, obj *types.Album) (*types.Artist, error) {
-	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
+	return r.resolveArtist(r.DB.Artists(ctx, data.ArtistsFilters{
 		Album: data.AlbumID(obj.ID),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(artistsData) == 0 {
-		return nil, nil
-	}
-	return r.translateArtist(artistsData[0]), nil
+	}))
 }
 
 // Songs is the resolver for the songs field.
 func (r *albumResolver) Songs(ctx context.Context, obj *types.Album) ([]*types.Song, error) {
-	songsData, err := r.DB.Songs(ctx, data.SongsFilters{
+	return r.resolveSongs(r.DB.Songs(ctx, data.SongsFilters{
 		Album: data.AlbumID(obj.ID),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return r.translateSongs(songsData), nil
+	}))
 }
 
 // Albums is the resolver for the albums field.
 func (r *artistResolver) Albums(ctx context.Context, obj *types.Artist) ([]*types.Album, error) {
-	albumsData, err := r.DB.Albums(ctx, data.AlbumsFilters{
+	return r.resolveAlbums(r.DB.Albums(ctx, data.AlbumsFilters{
 		Artist: data.ArtistID(obj.ID),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return r.translateAlbums(albumsData), nil
+	}))
 }
 
 // RelatedArtists is the resolver for the relatedArtists field.
 func (r *artistResolver) RelatedArtists(ctx context.Context, obj *types.Artist) ([]*types.Artist, error) {
-	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
+	return r.resolveArtists(r.DB.Artists(ctx, data.ArtistsFilters{
 		RelatedTo: data.ArtistID(obj.ID),
-	})
-	if err != nil {
-		return nil, err
-	}
-	return r.translateArtists(artistsData), nil
+	}))
 }
 
 // Artists is the resolver for the artists field.
 func (r *queryResolver) Artists(ctx context.Context) ([]*types.Artist, error) {
-	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{})
-	if err != nil {
-		return nil, err
-	}
-	return r.translateArtists(artistsData), nil
+	return r.resolveArtists(r.DB.Artists(ctx, data.ArtistsFilters{}))
 }
 
 // Artist is the resolver for the artist field.
 func (r *queryResolver) Artist(ctx context.Context, id string) (*types.Artist, error) {
-	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
+	return r.resolveArtist(r.DB.Artists(ctx, data.ArtistsFilters{
 		ID: data.ArtistID(id),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(artistsData) == 0 {
-		return nil, nil
-	}
-	return r.translateArtist(artistsData[0]), nil
+	}))
 }
 
 // Albums is the resolver for the albums field.
 func (r *queryResolver) Albums(ctx context.Context) ([]*types.Album, error) {
-	albumsData, err := r.DB.Albums(ctx, data.AlbumsFilters{})
-	if err != nil {
-		return nil, err
-	}
-	return r.translateAlbums(albumsData), nil
+	return r.resolveAlbums(r.DB.Albums(ctx, data.AlbumsFilters{}))
 }
 
 // Album is the resolver for the album field.
 func (r *queryResolver) Album(ctx context.Context, id string) (*types.Album, error) {
-	albumsData, err := r.DB.Albums(ctx, data.AlbumsFilters{
+	return r.resolveAlbum(r.DB.Albums(ctx, data.AlbumsFilters{
 		ID: data.AlbumID(id),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(albumsData) == 0 {
-		return nil, nil
-	}
-	return r.translateAlbum(albumsData[0]), nil
+	}))
 }
 
 // Songs is the resolver for the songs field.
 func (r *queryResolver) Songs(ctx context.Context) ([]*types.Song, error) {
-	songsData, err := r.DB.Songs(ctx, data.SongsFilters{})
-	if err != nil {
-		return nil, err
-	}
-	return r.translateSongs(songsData), nil
+	return r.resolveSongs(r.DB.Songs(ctx, data.SongsFilters{}))
 }
 
 // Song is the resolver for the song field.
 func (r *queryResolver) Song(ctx context.Context, id string) (*types.Song, error) {
-	songsData, err := r.DB.Songs(ctx, data.SongsFilters{
+	return r.resolveSong(r.DB.Songs(ctx, data.SongsFilters{
 		ID: data.SongID(id),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(songsData) == 0 {
-		return nil, nil
-	}
-	return r.translateSong(songsData[0]), nil
+	}))
 }
 
 // Artist is the resolver for the artist field.
 func (r *songResolver) Artist(ctx context.Context, obj *types.Song) (*types.Artist, error) {
-	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
+	return r.resolveArtist(r.DB.Artists(ctx, data.ArtistsFilters{
 		Song: data.SongID(obj.ID),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(artistsData) == 0 {
-		return nil, nil
-	}
-	return r.translateArtist(artistsData[0]), nil
+	}))
 }
 
 // Album is the resolver for the album field.
 func (r *songResolver) Album(ctx context.Context, obj *types.Song) (*types.Album, error) {
-	albumsData, err := r.DB.Albums(ctx, data.AlbumsFilters{
+	return r.resolveAlbum(r.DB.Albums(ctx, data.AlbumsFilters{
 		Song: data.SongID(obj.ID),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	if len(albumsData) == 0 {
-		return nil, nil
-	}
-	return r.translateAlbum(albumsData[0]), nil
+	}))
 }
 
 // Album returns AlbumResolver implementation.
