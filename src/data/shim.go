@@ -43,6 +43,10 @@ func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]
 			// We requested a specific artist by ID, this is not it
 			continue
 		}
+		if filters.Album != "" && !albums[artistName].Contains(filters.Album) {
+			// We requested the artist who created a given album, this is not it
+			continue
+		}
 
 		// Get "see also" data to fill related artists
 		seeAlso, _ := db.db.SeeAlso(artistName)

@@ -14,7 +14,17 @@ import (
 
 // Artist is the resolver for the artist field.
 func (r *albumResolver) Artist(ctx context.Context, obj *types.Album) (*types.Artist, error) {
-	panic(fmt.Errorf("not implemented: Artist - artist"))
+	artistsData, err := r.DB.Artists(ctx, data.ArtistsFilters{
+		Album: data.AlbumID(obj.ID),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(artistsData) == 0 {
+		return nil, nil
+	}
+	return r.translateArtist(artistsData[0]), nil
 }
 
 // Songs is the resolver for the songs field.
