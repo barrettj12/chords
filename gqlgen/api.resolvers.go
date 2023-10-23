@@ -73,7 +73,17 @@ func (r *queryResolver) Albums(ctx context.Context) ([]*types.Album, error) {
 
 // Album is the resolver for the album field.
 func (r *queryResolver) Album(ctx context.Context, id string) (*types.Album, error) {
-	panic(fmt.Errorf("not implemented: Album - album"))
+	albumsData, err := r.DB.Albums(ctx, data.AlbumsFilters{
+		ID: data.AlbumID(id),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(albumsData) == 0 {
+		return nil, nil
+	}
+	return r.translateAlbum(albumsData[0]), nil
 }
 
 // Songs is the resolver for the songs field.

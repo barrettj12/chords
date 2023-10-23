@@ -18,7 +18,9 @@ type ArtistsFilters struct {
 	RelatedTo ArtistID
 }
 
-type AlbumsFilters struct{}
+type AlbumsFilters struct {
+	ID AlbumID
+}
 
 type SongsFilters struct{}
 

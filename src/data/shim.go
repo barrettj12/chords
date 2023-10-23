@@ -86,11 +86,15 @@ func (db *ChordsDBv1Shim) Albums(_ context.Context, filters AlbumsFilters) ([]Al
 		if song.Album == "" {
 			continue
 		}
+		id := MakeAlbumID(song.Album)
+		if filters.ID != "" && id != filters.ID {
+			continue
+		}
 
 		if albums[song.Album] == nil {
 			// Make new Album
 			albums[song.Album] = &Album{
-				ID:     MakeAlbumID(song.Album),
+				ID:     id,
 				Name:   song.Album,
 				Artist: MakeArtistID(song.Artist),
 				Songs:  []SongID{},
