@@ -112,7 +112,7 @@ func (db *ChordsDBv1Shim) Albums(_ context.Context, filters AlbumsFilters) ([]Al
 }
 
 func (db *ChordsDBv1Shim) Songs(_ context.Context, filters SongsFilters) ([]Song, error) {
-	rawSongs, err := db.db.GetSongs("", "", "")
+	rawSongs, err := db.db.GetSongs("", string(filters.ID), "")
 	if err != nil {
 		return nil, err
 	}

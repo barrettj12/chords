@@ -22,7 +22,9 @@ type AlbumsFilters struct {
 	ID AlbumID
 }
 
-type SongsFilters struct{}
+type SongsFilters struct {
+	ID SongID
+}
 
 func GetDBv1(url string, logger *log.Logger) (ChordsDBv1, error) {
 	db, err := dblayer.GetDB(url, logger)
