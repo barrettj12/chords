@@ -23,6 +23,7 @@ type ArtistsFilters struct {
 type AlbumsFilters struct {
 	ID     AlbumID
 	Artist ArtistID
+	Song   SongID
 }
 
 type SongsFilters struct {

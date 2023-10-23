@@ -6,7 +6,6 @@ package gqlgen
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/barrettj12/chords/gqlgen/types"
 	"github.com/barrettj12/chords/src/data"
@@ -149,7 +148,17 @@ func (r *songResolver) Artist(ctx context.Context, obj *types.Song) (*types.Arti
 
 // Album is the resolver for the album field.
 func (r *songResolver) Album(ctx context.Context, obj *types.Song) (*types.Album, error) {
-	panic(fmt.Errorf("not implemented: Album - album"))
+	albumsData, err := r.DB.Albums(ctx, data.AlbumsFilters{
+		Song: data.SongID(obj.ID),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	if len(albumsData) == 0 {
+		return nil, nil
+	}
+	return r.translateAlbum(albumsData[0]), nil
 }
 
 // Album returns AlbumResolver implementation.

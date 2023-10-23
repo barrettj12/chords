@@ -90,7 +90,7 @@ func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]
 
 func (db *ChordsDBv1Shim) Albums(_ context.Context, filters AlbumsFilters) ([]Album, error) {
 	// Get album info from song metadata
-	songs, err := db.db.GetSongs("", "", "")
+	songs, err := db.db.GetSongs("", string(filters.Song), "")
 	if err != nil {
 		return nil, err
 	}
