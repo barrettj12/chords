@@ -12,6 +12,7 @@ package server
 import (
 	"bytes"
 	"context"
+	_ "embed"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -22,9 +23,11 @@ import (
 	"net/http"
 	"strings"
 
+	gqlhandle "github.com/99designs/gqlgen/graphql/handler"
+	gqlplay "github.com/99designs/gqlgen/graphql/playground"
+	"github.com/barrettj12/chords/gqlgen"
+	"github.com/barrettj12/chords/src/data"
 	"github.com/barrettj12/chords/src/dblayer"
-
-	_ "embed"
 )
 
 type Server struct {
@@ -119,6 +122,13 @@ func newHandler(logger *log.Logger, api *ChordsAPI, frontend *Frontend) handler 
 
 	// Register frontend endpoints
 	frontend.registerHandlers(mux)
+
+	// GraphQL endpoints
+	mux.Handle("/graphql", gqlhandle.NewDefaultServer(gqlgen.NewExecutableSchema(gqlgen.Config{
+		Resolvers: &gqlgen.Resolver{
+			DB: data.AsChordsDBv1(api.db),
+		}})))
+	mux.Handle("/graphql/playground", gqlplay.Handler("GraphQL playground", "/graphql"))
 
 	return handler{
 		logger: logger,

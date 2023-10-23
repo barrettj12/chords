@@ -13,6 +13,11 @@ type ChordsDBv1Shim struct {
 	db dblayer.ChordsDB
 }
 
+// AsChordsDBv1 wraps a ChordsDB (v0) inside a ChordsDBv1Shim.
+func AsChordsDBv1(db dblayer.ChordsDB) ChordsDBv1 {
+	return &ChordsDBv1Shim{db}
+}
+
 func (db *ChordsDBv1Shim) Artists(_ context.Context, filters ArtistsFilters) ([]Artist, error) {
 	artistNames, err := db.db.GetArtists()
 	if err != nil {
