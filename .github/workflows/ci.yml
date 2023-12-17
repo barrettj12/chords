@@ -36,21 +36,17 @@ jobs:
 
       - name: Check which files changed
         if: github.ref_name == 'main'
-        uses: dorny/paths-filter@v2
+        uses: AurorNZ/paths-filter@7c547bdd24124b0d69e07c96b62fd7fec5ced19a
         id: filter
         with:
-          # TODO: exclude test files here
           filters: |
             flybuild:
-              - 'src/client/**'
-              - 'src/dblayer/**'
-              - 'src/html/**'
-              - 'src/server/**'
-              - 'src/util/**'
-              - 'fly.toml'
-              - 'go.mod'
-              - 'go.sum'
-              - 'main.go'
+              - '**'
+              - '!docs/**'
+              - '!src/cmd/**'
+              - '!tests/**'
+              - '!.gitignore'
+              - '!**.md'
 
       - name: flyctl deploy
         shell: bash
