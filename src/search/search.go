@@ -35,6 +35,10 @@ func (i *Index) Remove(id string) error {
 }
 
 func (i *Index) Search(rawQuery string) (ids []string, err error) {
+	// For some reason, terms are not matched with mixed case
+	// So map everything to lowercase
+	rawQuery = strings.ToLower(rawQuery)
+
 	words := strings.Split(rawQuery, " ")
 	termQueries := make([]query.Query, 0, len(words))
 	for _, w := range words {
