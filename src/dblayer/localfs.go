@@ -280,28 +280,32 @@ func (l *localfs) SeeAlso(artist string) ([]string, error) {
 	return artists, nil
 }
 
-func (l *localfs) Search(query string) ([]SongMeta, error) {
-	ids, err := l.index.Search(query)
+func (l *localfs) Search(query string) ([]types.SearchResult, error) {
+	rawResults, err := l.index.Search(query)
 	if err != nil {
 		return nil, err
 	}
 
-	songs := []types.SongMeta{}
-	for _, id := range ids {
-		meta, err := l.getMeta(id)
-		if err != nil {
-			l.log.Printf("WARNING getting metadata for ID %q: %v", id, err)
-			continue
+	results := []types.SearchResult{}
+	for _, res := range rawResults {
+		if res.Type == "song" {
+			// Fill in song metadata
+			meta, err := l.getMeta(res.ID)
+			if err != nil {
+				l.log.Printf("WARNING getting metadata for ID %q: %v", res.ID, err)
+				continue
+			}
+			res.Meta = &meta
 		}
-		songs = append(songs, meta)
+		results = append(results, res)
 
 		// Limit to first 10 results
-		if len(songs) >= 10 {
+		if len(results) >= 10 {
 			break
 		}
 	}
 
-	return songs, nil
+	return results, nil
 }
 
 func (l *localfs) getMeta(id string) (meta types.SongMeta, err error) {

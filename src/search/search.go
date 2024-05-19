@@ -27,14 +27,18 @@ func NewIndex() (*Index, error) {
 }
 
 func (i *Index) Add(meta types.SongMeta) error {
-	return i.bleveIndex.Index(meta.ID, meta)
+	err := i.bleveIndex.Index("artist/"+meta.Artist, meta.Artist)
+	if err != nil {
+		return err
+	}
+	return i.bleveIndex.Index("song/"+meta.ID, meta)
 }
 
 func (i *Index) Remove(id string) error {
 	return i.bleveIndex.Delete(id)
 }
 
-func (i *Index) Search(rawQuery string) (ids []string, err error) {
+func (i *Index) Search(rawQuery string) ([]types.SearchResult, error) {
 	// For some reason, terms are not matched with mixed case
 	// So map everything to lowercase
 	rawQuery = strings.ToLower(rawQuery)
@@ -56,8 +60,20 @@ func (i *Index) Search(rawQuery string) (ids []string, err error) {
 		return nil, err
 	}
 
+	results := make([]types.SearchResult, 0, len(searchResults.Hits))
 	for _, res := range searchResults.Hits {
-		ids = append(ids, res.ID)
+		switch {
+		case strings.HasPrefix(res.ID, "artist/"):
+			results = append(results, types.SearchResult{
+				Type: "artist",
+				Name: strings.TrimPrefix(res.ID, "artist/"),
+			})
+		case strings.HasPrefix(res.ID, "song/"):
+			results = append(results, types.SearchResult{
+				Type: "song",
+				ID:   strings.TrimPrefix(res.ID, "song/"),
+			})
+		}
 	}
-	return ids, nil
+	return results, nil
 }

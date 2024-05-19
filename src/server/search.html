@@ -59,16 +59,24 @@
           cell.innerHTML = "No results found."
         }
 
-        for (let song of suggestionsJSON) {
+        for (let res of suggestionsJSON) {
           let row = suggestionsHTML.insertRow()
           let cell = row.insertCell()
           cell.setAttribute('style', "border: 1px solid black")
           
           let link = document.createElement('a');
-          link.innerText = `${song.name} · ${song.artist} · ${song.album}`;
-          link.setAttribute('href', "/b/chords?" + new URLSearchParams({
-            id: song.id,
-          }));
+          if (res.type === "artist") {
+            link.innerText = `${res.name} · artist`;
+            link.setAttribute('href', "/b/songs?" + new URLSearchParams({
+              artist: res.name,
+            }));
+          } else if (res.type === "song") {
+            link.innerText = `${res.meta.name} · ${res.meta.artist} · ${res.meta.album}`;
+            link.setAttribute('href', "/b/chords?" + new URLSearchParams({
+              id: res.meta.id,
+            }));
+          }
+
           link.setAttribute('style', "text-decoration: none; color: black")
           cell.appendChild(link);
         }

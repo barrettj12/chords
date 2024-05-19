@@ -9,7 +9,10 @@
 
 package dblayer
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/barrettj12/chords/src/types"
+)
 
 type song struct {
 	SongMeta
@@ -102,7 +105,7 @@ func (t *tempDB) SeeAlso(artist string) ([]string, error) {
 	return nil, nil
 }
 
-func (t *tempDB) Search(query string) ([]SongMeta, error) {
+func (t *tempDB) Search(query string) ([]types.SearchResult, error) {
 	// TODO: fill this in
 	return nil, nil
 }

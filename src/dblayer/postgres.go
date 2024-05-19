@@ -12,6 +12,7 @@ package dblayer
 import (
 	"database/sql"
 	"fmt"
+	"github.com/barrettj12/chords/src/types"
 
 	_ "github.com/lib/pq"
 )
@@ -130,7 +131,7 @@ func (p *postgres) SeeAlso(artist string) ([]string, error) {
 	return nil, nil
 }
 
-func (p *postgres) Search(query string) ([]SongMeta, error) {
+func (p *postgres) Search(query string) ([]types.SearchResult, error) {
 	// TODO: fill this in
 	return nil, nil
 }

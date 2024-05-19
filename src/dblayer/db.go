@@ -32,7 +32,7 @@ type ChordsDB interface {
 	GetChords(id string) (Chords, error)
 	UpdateChords(id string, chords Chords) (Chords, error)
 	SeeAlso(artist string) ([]string, error)
-	Search(query string) ([]SongMeta, error)
+	Search(query string) ([]types.SearchResult, error)
 	// Close() error
 }
 
