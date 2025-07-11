@@ -1,283 +1,283 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Artist - Jordy's Chordies</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist - Jordy's Chordies</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <a href="/" class="logo">
-                🎵 Jordy's Chordies
-            </a>
-            <div class="search-container">
-                <input type="text" class="search-box" placeholder="Search artists or songs..." id="search-box">
-                <div class="search-suggestions" id="search-suggestions"></div>
-            </div>
-        </div>
-    </header>
+  <header class="header">
+    <div class="header-content">
+      <a href="/c/artists" class="logo">
+        🎵 Jordy's Chordies
+      </a>
+      <div class="search-container">
+        <input type="text" class="search-box" placeholder="Search artists or songs..." id="search-box">
+        <div class="search-suggestions" id="search-suggestions"></div>
+      </div>
+    </div>
+  </header>
 
-    <main class="main-content">
-        <div class="artist-info">
-            <h1 id="artist-name">Loading...</h1>
-            <p id="artist-stats">Loading artist information...</p>
-            <a href="artists.html" class="btn btn-secondary">← Back to Artists</a>
-        </div>
+  <main class="main-content">
+    <div class="artist-info">
+      <h1 id="artist-name">Loading...</h1>
+      <p id="artist-stats">Loading artist information...</p>
+      <a href="/c/artists" class="btn btn-secondary">← Back to Artists</a>
+    </div>
 
-        <div class="album-sections" id="album-sections">
-            <!-- Album sections will be populated by JavaScript -->
-        </div>
+    <div class="album-sections" id="album-sections">
+      <!-- Album sections will be populated by JavaScript -->
+    </div>
 
-        <div class="loading" id="loading">Loading songs...</div>
-        <div class="error" id="error" style="display: none;"></div>
-    </main>
+    <div class="loading" id="loading">Loading songs...</div>
+    <div class="error" id="error" style="display: none;"></div>
+  </main>
 
-    <footer class="footer">
-        <div class="footer-content">
-            <p>&copy; 2025 Jordy's Chordies. All rights reserved.</p>
-            <p>
-                <a href="https://github.com/barrettj12/chords" target="_blank">
-                    View on GitHub
-                </a>
-            </p>
-        </div>
-    </footer>
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2025 Jordy's Chordies. All rights reserved.</p>
+      <p>
+        <a href="https://github.com/barrettj12/chords" target="_blank">
+          View on GitHub
+        </a>
+      </p>
+    </div>
+  </footer>
 
-    <script>
-        // Artist and songs data
-        let artistData = {};
-        let songsData = [];
+  <script>
+    // Artist and songs data
+    let artistData = {};
+    let songsData = [];
+    
+    // DOM elements
+    const searchBox = document.getElementById('search-box');
+    const searchSuggestions = document.getElementById('search-suggestions');
+    const artistName = document.getElementById('artist-name');
+    const artistStats = document.getElementById('artist-stats');
+    const albumSections = document.getElementById('album-sections');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const artist = urlParams.get('name');
+      
+      if (artist) {
+        loadArtistSongs(artist);
+      } else {
+        showError('No artist specified');
+        loading.style.display = 'none';
+      }
+      
+      setupSearch();
+    });
+
+    // Load artist songs from API (placeholder function)
+    async function loadArtistSongs(artist) {
+      try {
+        // Replace with actual API call
+        // const response = await fetch(`/api/artists/${encodeURIComponent(artist)}/songs`);
+        // const data = await response.json();
         
-        // DOM elements
-        const searchBox = document.getElementById('search-box');
-        const searchSuggestions = document.getElementById('search-suggestions');
-        const artistName = document.getElementById('artist-name');
-        const artistStats = document.getElementById('artist-stats');
-        const albumSections = document.getElementById('album-sections');
-        const loading = document.getElementById('loading');
-        const error = document.getElementById('error');
+        // Placeholder data
+        artistData = {
+          name: artist,
+          songCount: 0,
+          albumCount: 0
+        };
+        
+        // Sample songs data grouped by album
+        songsData = [
+          {
+            album: "Please Please Me",
+            year: "1963",
+            songs: [
+              { title: "Love Me Do", duration: "2:22" },
+              { title: "P.S. I Love You", duration: "2:05" },
+              { title: "Please Please Me", duration: "2:03" },
+              { title: "Ask Me Why", duration: "2:26" }
+            ]
+          },
+          {
+            album: "Abbey Road",
+            year: "1969",
+            songs: [
+              { title: "Come Together", duration: "4:20" },
+              { title: "Something", duration: "3:03" },
+              { title: "Maxwell's Silver Hammer", duration: "3:27" },
+              { title: "Oh! Darling", duration: "3:26" },
+              { title: "Here Comes the Sun", duration: "3:05" }
+            ]
+          },
+          {
+            album: "Singles",
+            year: "Various",
+            songs: [
+              { title: "Hey Jude", duration: "7:11" },
+              { title: "Let It Be", duration: "4:03" },
+              { title: "The Long and Winding Road", duration: "3:37" }
+            ]
+          }
+        ];
+        
+        // Calculate stats
+        artistData.songCount = songsData.reduce((total, album) => total + album.songs.length, 0);
+        artistData.albumCount = songsData.length;
+        
+        updateArtistInfo();
+        renderAlbums();
+        loading.style.display = 'none';
+      } catch (err) {
+        showError('Failed to load artist songs. Please try again.');
+        loading.style.display = 'none';
+      }
+    }
 
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const artist = urlParams.get('name');
-            
-            if (artist) {
-                loadArtistSongs(artist);
-            } else {
-                showError('No artist specified');
-                loading.style.display = 'none';
-            }
-            
-            setupSearch();
+    // Update artist information
+    function updateArtistInfo() {
+      artistName.textContent = artistData.name;
+      artistStats.textContent = `${artistData.songCount} songs across ${artistData.albumCount} albums`;
+      document.title = `${artistData.name} - Jordy's Chordies`;
+    }
+
+    // Render albums and songs
+    function renderAlbums() {
+      albumSections.innerHTML = '';
+      
+      songsData.forEach(album => {
+        const section = createAlbumSection(album);
+        albumSections.appendChild(section);
+      });
+    }
+
+    // Create album section
+    function createAlbumSection(album) {
+      const section = document.createElement('div');
+      section.className = 'album-section fade-in';
+      
+      const header = document.createElement('div');
+      header.className = 'album-header';
+      header.innerHTML = `
+        <span>${album.album}</span>
+        <span>${album.year}</span>
+      `;
+      
+      const songList = document.createElement('div');
+      songList.className = 'song-list';
+      
+      album.songs.forEach(song => {
+        const songItem = document.createElement('div');
+        songItem.className = 'song-item';
+        
+        const songLink = document.createElement('a');
+        songLink.href = `song.html?artist=${encodeURIComponent(artistData.name)}&song=${encodeURIComponent(song.title)}`;
+        songLink.className = 'song-link';
+        songLink.textContent = song.title;
+        
+        const songMeta = document.createElement('div');
+        songMeta.className = 'song-meta';
+        songMeta.textContent = song.duration;
+        
+        songItem.appendChild(songLink);
+        songItem.appendChild(songMeta);
+        songList.appendChild(songItem);
+      });
+      
+      section.appendChild(header);
+      section.appendChild(songList);
+      
+      return section;
+    }
+
+    // Setup search functionality
+    function setupSearch() {
+      let searchTimeout;
+      
+      searchBox.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        
+        if (query.length === 0) {
+          hideSuggestions();
+          return;
+        }
+        
+        searchTimeout = setTimeout(() => {
+          if (query.length >= 2) {
+            showSuggestions(query);
+          }
+        }, 150);
+      });
+      
+      searchBox.addEventListener('focus', function() {
+        if (searchBox.value.trim().length >= 2) {
+          showSuggestions(searchBox.value.trim());
+        }
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!searchBox.contains(e.target) && !searchSuggestions.contains(e.target)) {
+          hideSuggestions();
+        }
+      });
+    }
+
+    // Show search suggestions
+    function showSuggestions(query) {
+      const lowercaseQuery = query.toLowerCase();
+      const suggestions = [];
+      
+      // Search through current artist's songs
+      songsData.forEach(album => {
+        album.songs.forEach(song => {
+          if (song.title.toLowerCase().includes(lowercaseQuery)) {
+            suggestions.push({
+              type: 'song',
+              title: song.title,
+              artist: artistData.name,
+              album: album.album
+            });
+          }
         });
+      });
+      
+      // Limit suggestions
+      const limitedSuggestions = suggestions.slice(0, 6);
+      
+      if (limitedSuggestions.length === 0) {
+        hideSuggestions();
+        return;
+      }
+      
+      searchSuggestions.innerHTML = '';
+      limitedSuggestions.forEach(suggestion => {
+        const item = document.createElement('div');
+        item.className = 'suggestion-item';
+        item.innerHTML = `
+          <strong>${suggestion.title}</strong><br>
+          <small>${suggestion.artist} - ${suggestion.album}</small>
+        `;
+        item.onclick = () => {
+          window.location.href = `song.html?artist=${encodeURIComponent(suggestion.artist)}&song=${encodeURIComponent(suggestion.title)}`;
+        };
+        searchSuggestions.appendChild(item);
+      });
+      
+      searchSuggestions.classList.add('show');
+    }
 
-        // Load artist songs from API (placeholder function)
-        async function loadArtistSongs(artist) {
-            try {
-                // Replace with actual API call
-                // const response = await fetch(`/api/artists/${encodeURIComponent(artist)}/songs`);
-                // const data = await response.json();
-                
-                // Placeholder data
-                artistData = {
-                    name: artist,
-                    songCount: 0,
-                    albumCount: 0
-                };
-                
-                // Sample songs data grouped by album
-                songsData = [
-                    {
-                        album: "Please Please Me",
-                        year: "1963",
-                        songs: [
-                            { title: "Love Me Do", duration: "2:22" },
-                            { title: "P.S. I Love You", duration: "2:05" },
-                            { title: "Please Please Me", duration: "2:03" },
-                            { title: "Ask Me Why", duration: "2:26" }
-                        ]
-                    },
-                    {
-                        album: "Abbey Road",
-                        year: "1969",
-                        songs: [
-                            { title: "Come Together", duration: "4:20" },
-                            { title: "Something", duration: "3:03" },
-                            { title: "Maxwell's Silver Hammer", duration: "3:27" },
-                            { title: "Oh! Darling", duration: "3:26" },
-                            { title: "Here Comes the Sun", duration: "3:05" }
-                        ]
-                    },
-                    {
-                        album: "Singles",
-                        year: "Various",
-                        songs: [
-                            { title: "Hey Jude", duration: "7:11" },
-                            { title: "Let It Be", duration: "4:03" },
-                            { title: "The Long and Winding Road", duration: "3:37" }
-                        ]
-                    }
-                ];
-                
-                // Calculate stats
-                artistData.songCount = songsData.reduce((total, album) => total + album.songs.length, 0);
-                artistData.albumCount = songsData.length;
-                
-                updateArtistInfo();
-                renderAlbums();
-                loading.style.display = 'none';
-            } catch (err) {
-                showError('Failed to load artist songs. Please try again.');
-                loading.style.display = 'none';
-            }
-        }
+    // Hide search suggestions
+    function hideSuggestions() {
+      searchSuggestions.classList.remove('show');
+    }
 
-        // Update artist information
-        function updateArtistInfo() {
-            artistName.textContent = artistData.name;
-            artistStats.textContent = `${artistData.songCount} songs across ${artistData.albumCount} albums`;
-            document.title = `${artistData.name} - Jordy's Chordies`;
-        }
-
-        // Render albums and songs
-        function renderAlbums() {
-            albumSections.innerHTML = '';
-            
-            songsData.forEach(album => {
-                const section = createAlbumSection(album);
-                albumSections.appendChild(section);
-            });
-        }
-
-        // Create album section
-        function createAlbumSection(album) {
-            const section = document.createElement('div');
-            section.className = 'album-section fade-in';
-            
-            const header = document.createElement('div');
-            header.className = 'album-header';
-            header.innerHTML = `
-                <span>${album.album}</span>
-                <span>${album.year}</span>
-            `;
-            
-            const songList = document.createElement('div');
-            songList.className = 'song-list';
-            
-            album.songs.forEach(song => {
-                const songItem = document.createElement('div');
-                songItem.className = 'song-item';
-                
-                const songLink = document.createElement('a');
-                songLink.href = `song.html?artist=${encodeURIComponent(artistData.name)}&song=${encodeURIComponent(song.title)}`;
-                songLink.className = 'song-link';
-                songLink.textContent = song.title;
-                
-                const songMeta = document.createElement('div');
-                songMeta.className = 'song-meta';
-                songMeta.textContent = song.duration;
-                
-                songItem.appendChild(songLink);
-                songItem.appendChild(songMeta);
-                songList.appendChild(songItem);
-            });
-            
-            section.appendChild(header);
-            section.appendChild(songList);
-            
-            return section;
-        }
-
-        // Setup search functionality
-        function setupSearch() {
-            let searchTimeout;
-            
-            searchBox.addEventListener('input', function(e) {
-                clearTimeout(searchTimeout);
-                const query = e.target.value.trim();
-                
-                if (query.length === 0) {
-                    hideSuggestions();
-                    return;
-                }
-                
-                searchTimeout = setTimeout(() => {
-                    if (query.length >= 2) {
-                        showSuggestions(query);
-                    }
-                }, 150);
-            });
-            
-            searchBox.addEventListener('focus', function() {
-                if (searchBox.value.trim().length >= 2) {
-                    showSuggestions(searchBox.value.trim());
-                }
-            });
-            
-            document.addEventListener('click', function(e) {
-                if (!searchBox.contains(e.target) && !searchSuggestions.contains(e.target)) {
-                    hideSuggestions();
-                }
-            });
-        }
-
-        // Show search suggestions
-        function showSuggestions(query) {
-            const lowercaseQuery = query.toLowerCase();
-            const suggestions = [];
-            
-            // Search through current artist's songs
-            songsData.forEach(album => {
-                album.songs.forEach(song => {
-                    if (song.title.toLowerCase().includes(lowercaseQuery)) {
-                        suggestions.push({
-                            type: 'song',
-                            title: song.title,
-                            artist: artistData.name,
-                            album: album.album
-                        });
-                    }
-                });
-            });
-            
-            // Limit suggestions
-            const limitedSuggestions = suggestions.slice(0, 6);
-            
-            if (limitedSuggestions.length === 0) {
-                hideSuggestions();
-                return;
-            }
-            
-            searchSuggestions.innerHTML = '';
-            limitedSuggestions.forEach(suggestion => {
-                const item = document.createElement('div');
-                item.className = 'suggestion-item';
-                item.innerHTML = `
-                    <strong>${suggestion.title}</strong><br>
-                    <small>${suggestion.artist} - ${suggestion.album}</small>
-                `;
-                item.onclick = () => {
-                    window.location.href = `song.html?artist=${encodeURIComponent(suggestion.artist)}&song=${encodeURIComponent(suggestion.title)}`;
-                };
-                searchSuggestions.appendChild(item);
-            });
-            
-            searchSuggestions.classList.add('show');
-        }
-
-        // Hide search suggestions
-        function hideSuggestions() {
-            searchSuggestions.classList.remove('show');
-        }
-
-        // Show error message
-        function showError(message) {
-            error.textContent = message;
-            error.style.display = 'block';
-        }
-    </script>
+    // Show error message
+    function showError(message) {
+      error.textContent = message;
+      error.style.display = 'block';
+    }
+  </script>
 </body>
 </html>

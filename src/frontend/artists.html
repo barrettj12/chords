@@ -9,7 +9,7 @@
 <body>
   <header class="header">
     <div class="header-content">
-      <a href="/" class="logo">
+      <a href="/c/artists" class="logo">
         🎵 Jordy's Chordies
       </a>
       <div class="search-container">
@@ -76,9 +76,7 @@
           headers: {'Content-Type': 'application/json'},
         });
         const data = await response.json();
-        console.log(data)
         const artistsData = data.data.artists
-        console.log(artistsData)
         
         filteredArtists = [...artistsData];
         renderAlphabetNav();
@@ -119,12 +117,17 @@
       });
     }
 
+    // The name to use for sorting/grouping, stripping prefixes such as "The"
+    function sortName(name) {
+      return name.replace(/^The /, '')
+    }
+
     // Group artists by first letter
     function groupArtistsByLetter(artists) {
       const grouped = {};
       
       artists.forEach(artist => {
-        const firstLetter = artist.name.charAt(0).toUpperCase();
+        const firstLetter = sortName(artist.name).charAt(0).toUpperCase();
         const letter = /[A-Z]/.test(firstLetter) ? firstLetter : '#';
         
         if (!grouped[letter]) {
@@ -155,10 +158,13 @@
       
       const grid = document.createElement('div');
       grid.className = 'artist-grid';
+
+      artists.sort((a, b) => 
+          sortName(a.name).localeCompare(sortName(b.name)));
       
       artists.forEach(artist => {
         const card = document.createElement('a');
-        card.href = `songs.html?artist=${encodeURIComponent(artist.name)}`;
+        card.href = `/c/songs?artist=${encodeURIComponent(artist.name)}`;
         card.className = 'artist-card';
         card.innerHTML = `
           <div class="artist-name">${artist.name}</div>
