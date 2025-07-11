@@ -200,7 +200,7 @@ func (c *sshCommand) Exit() error {
 
 	err := c.cmd.Wait()
 	if err != nil {
-		return errors.Join(err, fmt.Errorf(c.stderr.String()))
+		return errors.Join(err, errors.New(c.stderr.String()))
 	}
 
 	fmt.Println("ssh command exited successfully")
