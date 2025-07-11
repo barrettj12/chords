@@ -28,9 +28,11 @@
         <a href="#" class="btn btn-secondary" id="back-btn">← Back to Artist</a>
         
         <div class="transpose-controls">
+          <div class="transpose-label">Transpose:</div>
           <button class="transpose-btn" id="transpose-down">−</button>
-          <div class="current-key" id="current-key">Original Key</div>
+          <div class="current-key" id="current-key">0</div>
           <button class="transpose-btn" id="transpose-up">+</button>
+          <button class="reset-btn" id="transpose-reset">Reset</button>
         </div>
       </div>
     </div>
@@ -71,6 +73,7 @@
     const backBtn = document.getElementById('back-btn');
     const transposeDown = document.getElementById('transpose-down');
     const transposeUp = document.getElementById('transpose-up');
+    const reset = document.getElementById('transpose-reset');
     const currentKey = document.getElementById('current-key');
     // TODO add reset button
     const chordContent = document.getElementById('chord-content');
@@ -142,6 +145,7 @@
     function setupTransposeControls() {
       transposeDown.addEventListener('click', tuneDown);
       transposeUp.addEventListener('click', tuneUp);
+      reset.addEventListener('click', resetTranspose);
     }
 
     function resetTranspose() {
