@@ -28,9 +28,9 @@
         <a href="#" class="btn btn-secondary" id="back-btn">← Back to Artist</a>
         
         <div class="transpose-controls">
-          <button class="transpose-btn" id="transpose-down">♭</button>
+          <button class="transpose-btn" id="transpose-down">−</button>
           <div class="current-key" id="current-key">Original Key</div>
-          <button class="transpose-btn" id="transpose-up">♯</button>
+          <button class="transpose-btn" id="transpose-up">+</button>
         </div>
       </div>
     </div>
@@ -54,7 +54,10 @@
     </div>
   </footer>
 
-  <script>
+  <script type="module">
+    // Import transposing library
+		import { transpose } from "https://barrettj12.github.io/chord-transposer/js/Main.js";
+
     // Song data
     let songData = {};
     let originalChords = '';
@@ -69,19 +72,17 @@
     const transposeDown = document.getElementById('transpose-down');
     const transposeUp = document.getElementById('transpose-up');
     const currentKey = document.getElementById('current-key');
+    // TODO add reset button
     const chordContent = document.getElementById('chord-content');
     const loading = document.getElementById('loading');
     const error = document.getElementById('error');
 
-    // Chord progression for transposition
-    const chordProgression = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-    const chordMap = {
-      'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'F': 5, 
-      'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11
-    };
-
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
+      // Check for cookie and restore previous transpose
+			currentTransposition = document.cookie.split("; ").
+				find((row) => row.startsWith("{{.ID}}="))?.split("=")[1] || 0;
+
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get('id');
       
@@ -100,12 +101,11 @@
     async function loadSongChords(id) {
       try {
         const chordsResp = await fetch(`/api/v0/chords?id=${encodeURIComponent(id)}`);
-        const chords = await chordsResp.text();
-        updateChordDisplay(chords);
+        originalChords = await chordsResp.text();
+        updateChordDisplay();
         
         const dataResp = await fetch(`/api/v0/songs?id=${encodeURIComponent(id)}`);
         const songData = await dataResp.json();
-        console.log(songData);
         updateSongInfo(songData[0]);
         loading.style.display = 'none';
       } catch (err) {
@@ -124,73 +124,42 @@
       // Update back button
       backBtn.href = `/c/songs?artist=${encodeURIComponent(songData.artist)}`;
       
-      // Update current key display
       updateKeyDisplay();
     }
 
     // Update key display
     function updateKeyDisplay() {
-      const originalKeyIndex = chordMap[songData.originalKey] || 0;
-      const newKeyIndex = (originalKeyIndex + currentTransposition + 12) % 12;
-      const newKey = chordProgression[newKeyIndex];
-      
-      if (currentTransposition === 0) {
-        currentKey.textContent = `${songData.originalKey} (Original)`;
-      } else {
-        const direction = currentTransposition > 0 ? '+' : '';
-        currentKey.textContent = `${newKey} (${direction}${currentTransposition})`;
-      }
+      currentKey.textContent = currentTransposition
     }
 
     // Update chord display
-    function updateChordDisplay(chords) {
-      // TODO transpose chords
-      chordContent.textContent = chords;
-    }
-
-    // Transpose chords
-    function transposeChords(chords, semitones) {
-      // Regular expression to match chord names
-      const chordRegex = /\b([A-G](?:#|b)?(?:m|maj|min|aug|dim|sus|add|[0-9])*)\b/g;
-      
-      return chords.replace(chordRegex, (match) => {
-        return transposeChord(match, semitones);
-      });
-    }
-
-    // Transpose individual chord
-    function transposeChord(chord, semitones) {
-      // Extract the root note (first 1-2 characters)
-      const rootMatch = chord.match(/^([A-G](?:#|b)?)/);
-      if (!rootMatch) return chord;
-      
-      const root = rootMatch[1];
-      const suffix = chord.slice(root.length);
-      
-      // Find the root note index
-      const rootIndex = chordMap[root];
-      if (rootIndex === undefined) return chord;
-      
-      // Calculate new root index
-      const newRootIndex = (rootIndex + semitones + 12) % 12;
-      const newRoot = chordProgression[newRootIndex];
-      
-      return newRoot + suffix;
+    function updateChordDisplay() {
+      chordContent.textContent = transpose(originalChords, currentTransposition);
+			document.cookie = "{{.ID}}="+currentTransposition;
     }
 
     // Setup transpose controls
     function setupTransposeControls() {
-      transposeDown.addEventListener('click', () => {
-        currentTransposition = Math.max(currentTransposition - 1, -11);
-        updateKeyDisplay();
-        updateChordDisplay();
-      });
-      
-      transposeUp.addEventListener('click', () => {
-        currentTransposition = Math.min(currentTransposition + 1, 11);
-        updateKeyDisplay();
-        updateChordDisplay();
-      });
+      transposeDown.addEventListener('click', tuneDown);
+      transposeUp.addEventListener('click', tuneUp);
+    }
+
+    function resetTranspose() {
+      currentTransposition = 0;
+      updateChordDisplay();
+      updateKeyDisplay()
+    }
+
+    function tuneUp() {
+      currentTransposition++;
+      updateChordDisplay();
+      updateKeyDisplay()
+    }
+
+    function tuneDown() {
+      currentTransposition--;
+      updateChordDisplay();
+      updateKeyDisplay()
     }
 
     // Setup search functionality
