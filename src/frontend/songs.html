@@ -71,10 +71,9 @@
       }
     });
 
-    // Load artist songs from API (placeholder function)
+    // Load artist songs from API
     async function loadArtistSongs(artist) {
       try {
-        // Replace with actual API call
         const response = await fetch(
           `/api/v0/songs?artist=${encodeURIComponent(artist)}`
         );

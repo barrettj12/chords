@@ -50,38 +50,6 @@ async function fillSuggestions() {
   }
 
   showSuggestions(suggestionsJSON)
-
-  // suggestionsHTML.innerHTML = ''
-
-  // if (suggestionsJSON.length == 0) {
-  //   let row = suggestionsHTML.insertRow()
-  //   let cell = row.insertCell()
-  //   cell.setAttribute('style', "border: 1px solid black")
-  //   cell.innerHTML = "No results found."
-  // }
-
-  // for (let res of suggestionsJSON) {
-  //   let row = suggestionsHTML.insertRow()
-  //   let cell = row.insertCell()
-  //   cell.setAttribute('style', "border: 1px solid black")
-    
-  //   let link = document.createElement('a');
-  //   if (res.type === "artist") {
-  //     link.innerText = `${res.name} · artist`;
-  //     link.setAttribute('href', "/b/songs?" + new URLSearchParams({
-  //       artist: res.name,
-  //     }));
-  //   } else if (res.type === "song") {
-  //     link.innerText = `${res.meta.name} · ${res.meta.artist} · ${res.meta.album}`;
-  //     link.setAttribute('href', "/b/chords?" + new URLSearchParams({
-  //       id: res.meta.id,
-  //     }));
-  //   }
-
-  //   link.setAttribute('style', "text-decoration: none; color: black")
-  //   cell.appendChild(link);
-  // }
-
   suggestionsHTML.setAttribute('data-last-updated', timestamp.toJSON())
 }
 
@@ -122,5 +90,4 @@ function showSuggestions(results) {
   });
   
   suggestionsHTML.classList.add('show');
-  // suggestionsHTML.setAttribute('data-last-updated', timestamp.toJSON())
 }

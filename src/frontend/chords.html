@@ -99,7 +99,7 @@
       setupTransposeControls();
     });
 
-    // Load song chords from API (placeholder function)
+    // Load song chords from API
     async function loadSongChords(id) {
       try {
         const chordsResp = await fetch(`/api/v0/chords?id=${encodeURIComponent(id)}`);
