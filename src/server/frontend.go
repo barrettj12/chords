@@ -66,7 +66,8 @@ func (f *Frontend) registerHandlers(mux *http.ServeMux) {
 	})
 
 	// Default redirect to frontend artists page
-	mux.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
+	// TODO remove this, it's kind of annoying
+	mux.Handle("/", http.RedirectHandler("/c/artists", http.StatusTemporaryRedirect))
 }
 
 func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {
