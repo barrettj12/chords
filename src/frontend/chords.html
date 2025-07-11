@@ -56,6 +56,7 @@
     </div>
   </footer>
 
+  <script src="search.js"></script>
   <script type="module">
     // Import transposing library
 		import { transpose } from "https://barrettj12.github.io/chord-transposer/js/Main.js";
@@ -66,8 +67,6 @@
     let currentTransposition = 0;
     
     // DOM elements
-    const searchBox = document.getElementById('search-box');
-    const searchSuggestions = document.getElementById('search-suggestions');
     const songTitle = document.getElementById('song-title');
     const songArtist = document.getElementById('song-artist');
     const backBtn = document.getElementById('back-btn');
@@ -97,7 +96,6 @@
         loading.style.display = 'none';
       }
       
-      setupSearch();
       setupTransposeControls();
     });
 
@@ -166,51 +164,6 @@
       currentTransposition--;
       updateChordDisplay();
       updateKeyDisplay()
-    }
-
-    // Setup search functionality
-    function setupSearch() {
-      let searchTimeout;
-      
-      searchBox.addEventListener('input', function(e) {
-        clearTimeout(searchTimeout);
-        const query = e.target.value.trim();
-        
-        if (query.length === 0) {
-          hideSuggestions();
-          return;
-        }
-        
-        searchTimeout = setTimeout(() => {
-          if (query.length >= 2) {
-            showSuggestions(query);
-          }
-        }, 150);
-      });
-      
-      searchBox.addEventListener('focus', function() {
-        if (searchBox.value.trim().length >= 2) {
-          showSuggestions(searchBox.value.trim());
-        }
-      });
-      
-      document.addEventListener('click', function(e) {
-        if (!searchBox.contains(e.target) && !searchSuggestions.contains(e.target)) {
-          hideSuggestions();
-        }
-      });
-    }
-
-    // Show search suggestions (placeholder)
-    function showSuggestions(query) {
-      // This would normally search through all artists/songs
-      // For now, just hide suggestions since we don't have the full data
-      hideSuggestions();
-    }
-
-    // Hide search suggestions
-    function hideSuggestions() {
-      searchSuggestions.classList.remove('show');
     }
 
     // Show error message

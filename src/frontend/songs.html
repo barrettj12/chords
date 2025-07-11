@@ -45,14 +45,13 @@
     </div>
   </footer>
 
+  <script src="search.js"></script>
   <script>
     // Artist and songs data
     let artistData = {};
     let songsData = [];
     
     // DOM elements
-    const searchBox = document.getElementById('search-box');
-    const searchSuggestions = document.getElementById('search-suggestions');
     const artistName = document.getElementById('artist-name');
     const artistStats = document.getElementById('artist-stats');
     const albumSections = document.getElementById('album-sections');
@@ -70,8 +69,6 @@
         showError('No artist specified');
         loading.style.display = 'none';
       }
-      
-      setupSearch();
     });
 
     // Load artist songs from API (placeholder function)
@@ -177,88 +174,6 @@
       section.appendChild(songList);
       
       return section;
-    }
-
-    // Setup search functionality
-    function setupSearch() {
-      let searchTimeout;
-      
-      searchBox.addEventListener('input', function(e) {
-        clearTimeout(searchTimeout);
-        const query = e.target.value.trim();
-        
-        if (query.length === 0) {
-          hideSuggestions();
-          return;
-        }
-        
-        searchTimeout = setTimeout(() => {
-          if (query.length >= 2) {
-            showSuggestions(query);
-          }
-        }, 150);
-      });
-      
-      searchBox.addEventListener('focus', function() {
-        if (searchBox.value.trim().length >= 2) {
-          showSuggestions(searchBox.value.trim());
-        }
-      });
-      
-      document.addEventListener('click', function(e) {
-        if (!searchBox.contains(e.target) && !searchSuggestions.contains(e.target)) {
-          hideSuggestions();
-        }
-      });
-    }
-
-    // Show search suggestions
-    function showSuggestions(query) {
-      const lowercaseQuery = query.toLowerCase();
-      const suggestions = [];
-      
-      // Search through current artist's songs
-      songsData.forEach(album => {
-        album.songs.forEach(song => {
-          if (song.title.toLowerCase().includes(lowercaseQuery)) {
-            suggestions.push({
-              type: 'song',
-              title: song.title,
-              artist: artistData.name,
-              album: album.album
-            });
-          }
-        });
-      });
-      
-      // Limit suggestions
-      const limitedSuggestions = suggestions.slice(0, 6);
-      
-      if (limitedSuggestions.length === 0) {
-        hideSuggestions();
-        return;
-      }
-      
-      searchSuggestions.innerHTML = '';
-      limitedSuggestions.forEach(suggestion => {
-        const item = document.createElement('div');
-        item.className = 'suggestion-item';
-        item.innerHTML = `
-          <strong>${suggestion.title}</strong><br>
-          <small>${suggestion.artist} - ${suggestion.album}</small>
-        `;
-        item.onclick = () => {
-          window.location.href = `song.html?artist=${encodeURIComponent(suggestion.artist)}&song=${encodeURIComponent(suggestion.title)}`;
-        };
-        searchSuggestions.appendChild(item);
-      });
-      
-      searchSuggestions.classList.add('show');
-    }
-
-    // Hide search suggestions
-    function hideSuggestions() {
-      searchSuggestions.classList.remove('show');
     }
 
     // Show error message
