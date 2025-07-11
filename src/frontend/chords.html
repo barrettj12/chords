@@ -82,12 +82,13 @@
 
     // Initialize page
     document.addEventListener('DOMContentLoaded', function() {
-      // Check for cookie and restore previous transpose
-			currentTransposition = document.cookie.split("; ").
-				find((row) => row.startsWith("{{.ID}}="))?.split("=")[1] || 0;
-
       const urlParams = new URLSearchParams(window.location.search);
       const id = urlParams.get('id');
+      
+      // Check for cookie and restore previous transpose
+      // TODO fix cookies
+			currentTransposition = document.cookie.split("; ").
+				find((row) => row.startsWith(`${id}=`))?.split("=")[1] || 0;
       
       if (id) {
         loadSongChords(id);
@@ -138,7 +139,8 @@
     // Update chord display
     function updateChordDisplay() {
       chordContent.textContent = transpose(originalChords, currentTransposition);
-			document.cookie = "{{.ID}}="+currentTransposition;
+      // TODO fix cookies
+      document.cookie = `${songData.id}=${currentTransposition}`;
     }
 
     // Setup transpose controls
