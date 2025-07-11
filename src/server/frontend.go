@@ -41,14 +41,33 @@ func NewFrontend(apiURL string) (*Frontend, error) {
 }
 
 func (f *Frontend) registerHandlers(mux *http.ServeMux) {
+	// Old frontend
 	mux.HandleFunc("/b/artists", f.artistsHandler)
 	mux.HandleFunc("/b/songs", f.songsHandler)
 	mux.HandleFunc("/b/chords", f.chordsHandler)
 	mux.HandleFunc("/b/random", f.randomHandler)
 	mux.HandleFunc("/b/search", f.searchHandler)
 
+	// New frontend
+	mux.HandleFunc("/c/style.css", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "src/frontend/style.css")
+	})
+	mux.HandleFunc("/c/search.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "src/frontend/search.js")
+	})
+	mux.HandleFunc("/c/artists", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "src/frontend/artists.html")
+	})
+	mux.HandleFunc("/c/songs", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "src/frontend/songs.html")
+	})
+	mux.HandleFunc("/c/chords", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "src/frontend/chords.html")
+	})
+
 	// Default redirect to frontend artists page
-	mux.Handle("/", http.RedirectHandler("/b/artists", http.StatusTemporaryRedirect))
+	// TODO remove this, it's kind of annoying
+	mux.Handle("/", http.RedirectHandler("/c/artists", http.StatusTemporaryRedirect))
 }
 
 func (f *Frontend) artistsHandler(w http.ResponseWriter, r *http.Request) {

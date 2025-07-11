@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artist - Jordy's Chordies</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="/c/artists" class="logo">
+        🎵 Jordy's Chordies
+      </a>
+      <div class="search-container">
+        <input type="text" class="search-box" placeholder="Search artists or songs..." id="search-box">
+        <div class="search-suggestions" id="search-suggestions"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="artist-info">
+      <h1 id="artist-name">Loading...</h1>
+      <p id="artist-stats">Loading artist information...</p>
+      <a href="/c/artists" class="btn btn-secondary">← Back to all artists</a>
+    </div>
+
+    <div class="album-sections" id="album-sections">
+      <!-- Album sections will be populated by JavaScript -->
+    </div>
+
+    <div class="loading" id="loading">Loading songs...</div>
+    <div class="error" id="error" style="display: none;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2025 Jordy's Chordies. All rights reserved.</p>
+      <p>
+        <a href="https://github.com/barrettj12/chords" target="_blank">
+          View on GitHub
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="search.js"></script>
+  <script>
+    // Artist and songs data
+    let artistData = {};
+    let songsData = [];
+    
+    // DOM elements
+    const artistName = document.getElementById('artist-name');
+    const artistStats = document.getElementById('artist-stats');
+    const albumSections = document.getElementById('album-sections');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const artist = urlParams.get('artist');
+      
+      if (artist) {
+        loadArtistSongs(artist);
+      } else {
+        showError('No artist specified');
+        loading.style.display = 'none';
+      }
+    });
+
+    // Load artist songs from API
+    async function loadArtistSongs(artist) {
+      try {
+        const response = await fetch(
+          `/api/v0/songs?artist=${encodeURIComponent(artist)}`
+        );
+        const data = await response.json();
+        
+        const artistInfo = {
+          name: artist,
+          songCount: data.length,
+        };
+        updateArtistInfo(artistInfo);
+        
+        renderAlbums(data);
+        loading.style.display = 'none';
+      } catch (err) {
+        console.log(err)
+        showError('Failed to load artist songs. Please try again.');
+        loading.style.display = 'none';
+      }
+    }
+
+    // Update artist information
+    function updateArtistInfo(artistInfo) {
+      artistName.textContent = artistInfo.name;
+      artistStats.textContent = `${artistInfo.songCount} song` + (artistInfo.songCount == 1 ? '' : 's');
+      document.title = `${artistInfo.name} - Jordy's Chordies`;
+    }
+
+    // Render albums and songs
+    function renderAlbums(data) {
+      albumSections.innerHTML = '';
+
+      // Group songs into albums
+      albumNames = [];
+      albums = {};
+      noAlbum = [];
+      for (const song of data) {
+        if (song.album) {
+          if (!albumNames.includes(song.album)) {
+            albumNames.push(song.album)
+          }
+          if (!albums[song.album]) {
+            albums[song.album] = []
+          }
+          albums[song.album].push(song)
+        } else {
+          noAlbum.push(song)
+        }
+      }
+      
+      for (const albumName of albumNames) {
+        let album = albums[albumName]
+        album.sort((a, b) => a.trackNum - b.trackNum)
+        const section = createAlbumSection(albumName, album);
+        albumSections.appendChild(section);
+      }
+
+      if (noAlbum.length > 0) {
+        const noAlbumSection = createAlbumSection('', noAlbum);
+        albumSections.appendChild(noAlbumSection);
+      }
+    }
+
+    // Create album section
+    function createAlbumSection(name, album) {
+      let albumName = name
+      if (!albumName) {
+        albumName = '(no album)'
+      }
+
+      const section = document.createElement('div');
+      section.className = 'album-section fade-in';
+      
+      const header = document.createElement('div');
+      header.className = 'album-header';
+      header.innerHTML = `<span>${albumName}</span>`;
+      
+      const songList = document.createElement('div');
+      songList.className = 'song-list';
+
+      for (const song of album) {
+        const songItem = document.createElement('div');
+        songItem.className = 'song-item';
+        
+        const songLink = document.createElement('a');
+        songLink.href = `/c/chords?id=${encodeURIComponent(song.id)}`;
+        songLink.className = 'song-link';
+        songLink.textContent = song.name;
+        if (song.trackNum) {
+          songLink.textContent = `${song.trackNum}. ${song.name}`;
+        }
+        
+        songItem.appendChild(songLink);
+        songList.appendChild(songItem);
+      }
+      
+      section.appendChild(header);
+      section.appendChild(songList);
+      
+      return section;
+    }
+
+    // Show error message
+    function showError(message) {
+      error.textContent = message;
+      error.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

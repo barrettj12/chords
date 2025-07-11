@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Artists - Jordy's Chordies</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="header">
+    <div class="header-content">
+      <a href="/c/artists" class="logo">
+        🎵 Jordy's Chordies
+      </a>
+      <div class="search-container">
+        <input type="text" class="search-box" placeholder="Search artists or songs..." id="search-box">
+        <div class="search-suggestions" id="search-suggestions"></div>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <h1 class="page-title">Artists</h1>
+    
+    <div class="alphabet-nav" id="alphabet-nav">
+      <!-- Alphabet navigation will be populated by JavaScript -->
+    </div>
+
+    <div class="artist-sections" id="artist-sections">
+      <!-- Artist sections will be populated by JavaScript -->
+    </div>
+
+    <div class="loading" id="loading">Loading artists...</div>
+    <div class="error" id="error" style="display: none;"></div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2025 Jordy's Chordies. All rights reserved.</p>
+      <p>
+        <a href="https://github.com/barrettj12/chords" target="_blank">
+          View on GitHub
+        </a>
+      </p>
+    </div>
+  </footer>
+
+  <script src="search.js"></script>
+  <script>
+    // Artist data structure (to be populated from API)
+    let artistsData = [];
+    let filteredArtists = [];
+    
+    // DOM elements
+    const alphabetNav = document.getElementById('alphabet-nav');
+    const artistSections = document.getElementById('artist-sections');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      loadArtists();
+    });
+
+    // Load artists from API
+    async function loadArtists() {
+      try {
+        // Call API
+        const response = await fetch('/graphql', {
+          method: 'POST',
+          body: JSON.stringify({
+            query: 'query{artists{name}}',
+          }),
+          headers: {'Content-Type': 'application/json'},
+        });
+        const data = await response.json();
+        const artistsData = data.data.artists
+        
+        filteredArtists = [...artistsData];
+        renderAlphabetNav();
+        renderArtists();
+        loading.style.display = 'none';
+      } catch (err) {
+        showError('Failed to load artists. Please try again.');
+        loading.style.display = 'none';
+      }
+    }
+
+    // Render alphabet navigation
+    function renderAlphabetNav() {
+      const alphabet = '#ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      alphabetNav.innerHTML = '';
+      
+      for (let letter of alphabet) {
+        const link = document.createElement('a');
+        link.href = '#';
+        link.textContent = letter;
+        link.onclick = (e) => {
+          e.preventDefault();
+          scrollToSection(letter);
+          setActiveNavItem(link);
+        };
+        alphabetNav.appendChild(link);
+      }
+    }
+
+    // Render artists grouped by first letter
+    function renderArtists() {
+      const grouped = groupArtistsByLetter(filteredArtists);
+      artistSections.innerHTML = '';
+
+      Object.keys(grouped).sort().forEach(letter => {
+        const section = createArtistSection(letter, grouped[letter]);
+        artistSections.appendChild(section);
+      });
+    }
+
+    // The name to use for sorting/grouping, stripping prefixes such as "The"
+    function sortName(name) {
+      return name.replace(/^The /, '')
+    }
+
+    // Group artists by first letter
+    function groupArtistsByLetter(artists) {
+      const grouped = {};
+      
+      artists.forEach(artist => {
+        const firstLetter = sortName(artist.name).charAt(0).toUpperCase();
+        const letter = /[A-Z]/.test(firstLetter) ? firstLetter : '#';
+        
+        if (!grouped[letter]) {
+          grouped[letter] = [];
+        }
+        grouped[letter].push(artist);
+      });
+      
+      return grouped;
+    }
+
+    // Create artist section
+    function createArtistSection(letter, artists) {
+      const section = document.createElement('div');
+      section.className = 'artist-section';
+      section.id = `section-${letter}`;
+      
+      const header = document.createElement('div');
+      header.className = 'section-header';
+      header.innerHTML = `
+        <h2>${letter}</h2>
+        <span>${artists.length} artist${artists.length !== 1 ? 's' : ''}</span>
+      `;
+      header.onclick = () => toggleSection(section);
+      
+      const content = document.createElement('div');
+      content.className = 'section-content open';
+      
+      const grid = document.createElement('div');
+      grid.className = 'artist-grid';
+
+      artists.sort((a, b) => 
+          sortName(a.name).localeCompare(sortName(b.name)));
+      
+      artists.forEach(artist => {
+        const card = document.createElement('a');
+        card.href = `/c/songs?artist=${encodeURIComponent(artist.name)}`;
+        card.className = 'artist-card';
+        card.innerHTML = `
+          <div class="artist-name">${artist.name}</div>
+        `;
+        grid.appendChild(card);
+      });
+      
+      content.appendChild(grid);
+      section.appendChild(header);
+      section.appendChild(content);
+      
+      return section;
+    }
+
+    // Toggle section visibility
+    function toggleSection(section) {
+      const content = section.querySelector('.section-content');
+      content.classList.toggle('open');
+    }
+
+    // Scroll to section
+    function scrollToSection(letter) {
+      const section = document.getElementById(`section-${letter}`);
+      if (section) {
+        section.scrollIntoView({ behavior: 'smooth' });
+      }
+    }
+
+    // Set active navigation item
+    function setActiveNavItem(activeItem) {
+      alphabetNav.querySelectorAll('a').forEach(item => {
+        item.classList.remove('active');
+      });
+      activeItem.classList.add('active');
+    }
+
+    // Show error message
+    function showError(message) {
+      error.textContent = message;
+      error.style.display = 'block';
+    }
+  </script>
+</body>
+</html>

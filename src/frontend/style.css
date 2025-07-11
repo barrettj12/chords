@@ -1,0 +1,581 @@
+/* styles.css - Main Stylesheet for Jordy's Chordies */
+
+/* Reset and Base Styles */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Header Styles */
+.header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 0;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 1rem;
+}
+
+.logo {
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.logo:hover {
+    opacity: 0.9;
+}
+
+.search-container {
+    position: relative;
+    flex-grow: 1;
+    max-width: 400px;
+}
+
+.search-box {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    background: rgba(255,255,255,0.9);
+    backdrop-filter: blur(10px);
+    transition: all 0.3s ease;
+}
+
+.search-box:focus {
+    outline: none;
+    background: white;
+    box-shadow: 0 0 0 3px rgba(255,255,255,0.3);
+}
+
+.search-suggestions {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    max-height: 300px;
+    overflow-y: auto;
+    z-index: 1000;
+    display: none;
+}
+
+.search-suggestions.show {
+    display: block;
+}
+
+.suggestion-item {
+    color: black;
+    padding: 0.75rem 1rem;
+    cursor: pointer;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+.suggestion-item:hover {
+    background-color: #f8f9fa;
+}
+
+.suggestion-item:last-child {
+    border-bottom: none;
+}
+
+/* Main Content */
+.main-content {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+    width: 100%;
+}
+
+.page-title {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    color: #2d3748;
+    text-align: center;
+}
+
+/* Artists Page Styles */
+.alphabet-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+}
+
+.alphabet-nav a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    background: #f8f9fa;
+    color: #667eea;
+    text-decoration: none;
+    border-radius: 50%;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.alphabet-nav a:hover,
+.alphabet-nav a.active {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+}
+
+.artist-section {
+    margin-bottom: 2rem;
+}
+
+#artist-stats {
+    margin-bottom: 10px;
+}
+
+.section-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 15px 15px 0 0;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: all 0.3s ease;
+}
+
+.section-header:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.section-content {
+    background: white;
+    border-radius: 0 0 15px 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+}
+
+.section-content.open {
+    max-height: 1000px;
+}
+
+.artist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+}
+
+.artist-card {
+    background: #f8f9fa;
+    padding: 1rem;
+    border-radius: 10px;
+    text-decoration: none;
+    color: #2d3748;
+    transition: all 0.2s ease;
+    border: 2px solid transparent;
+}
+
+.artist-card:hover {
+    background: #667eea;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.artist-name {
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+.artist-song-count {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-top: 0.25rem;
+}
+
+/* Songs Page Styles */
+.artist-info {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.artist-info h2 {
+    font-size: 2rem;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.album-section {
+    background: white;
+    margin-bottom: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    overflow: hidden;
+}
+
+.album-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    font-size: 1.3rem;
+    font-weight: 600;
+}
+
+.song-list {
+    padding: 1.5rem;
+}
+
+.song-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid #eee;
+    transition: background-color 0.2s ease;
+}
+
+.song-item:hover {
+    background-color: #f8f9fa;
+}
+
+.song-item:last-child {
+    border-bottom: none;
+}
+
+.song-link {
+    text-decoration: none;
+    color: #2d3748;
+    font-weight: 500;
+    flex-grow: 1;
+    transition: color 0.2s ease;
+}
+
+.song-link:hover {
+    color: #667eea;
+}
+
+.song-meta {
+    font-size: 0.9rem;
+    color: #718096;
+}
+
+/* Chords Page Styles */
+.song-header {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+
+.song-title {
+    font-size: 2.2rem;
+    color: #2d3748;
+    margin-bottom: 0.5rem;
+}
+
+.song-artist {
+    font-size: 1.2rem;
+    color: #718096;
+    margin-bottom: 1rem;
+}
+
+.song-controls {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.transpose-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.transpose-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0rem 0.5rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1.8rem;
+    font-weight: 900;
+    transition: all 0.2s ease;
+}
+
+.transpose-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+}
+
+.transpose-btn:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.reset-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+    cursor: pointer;
+    font-size: 1rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+}
+
+.reset-btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+}
+
+.reset-btn:disabled {
+    background: #cbd5e0;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.transpose-label {
+    font-weight: 600;
+    color: #2d3748;
+    padding: 0.5rem 1rem;
+    border-radius: 25px;
+}
+
+.current-key {
+    font-weight: 600;
+    color: #2d3748;
+    padding: 0.5rem 1rem;
+    background: #f8f9fa;
+    border-radius: 25px;
+}
+
+.chord-sheet {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    margin-bottom: 2rem;
+}
+
+.chord-content {
+    font-family: 'Courier New', monospace;
+    font-size: 1rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    color: #2d3748;
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 10px;
+    overflow-x: auto;
+}
+
+/* Footer Styles */
+.footer {
+    background: #2d3748;
+    color: white;
+    padding: 2rem 0;
+    margin-top: auto;
+}
+
+.footer-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 1rem;
+    text-align: center;
+}
+
+.footer-content p {
+    margin-bottom: 1rem;
+}
+
+.footer-content a {
+    color: #667eea;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+
+.footer-content a:hover {
+    color: #5a6fd8;
+}
+
+/* Utilities */
+.btn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #667eea;
+    color: white;
+    text-decoration: none;
+    border-radius: 25px;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+}
+
+.btn:hover {
+    background: #5a6fd8;
+    transform: translateY(-2px);
+}
+
+.btn-secondary {
+    background: #718096;
+}
+
+.btn-secondary:hover {
+    background: #4a5568;
+}
+
+.loading {
+    text-align: center;
+    padding: 2rem;
+    color: #718096;
+}
+
+.error {
+    background: #fed7d7;
+    color: #c53030;
+    padding: 1rem;
+    border-radius: 10px;
+    margin: 1rem 0;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        text-align: center;
+    }
+    
+    .search-container {
+        max-width: 100%;
+    }
+    
+    .page-title {
+        font-size: 2rem;
+    }
+    
+    .artist-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .song-controls {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .transpose-controls {
+        justify-content: center;
+    }
+    
+    .alphabet-nav {
+        gap: 0.25rem;
+    }
+    
+    .alphabet-nav a {
+        width: 35px;
+        height: 35px;
+        font-size: 0.9rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 1rem;
+    }
+    
+    .chord-content {
+        font-size: 0.9rem;
+        padding: 1rem;
+    }
+    
+    .song-header,
+    .artist-info,
+    .chord-sheet {
+        padding: 1rem;
+    }
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fade-in {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* Scrollbar Styling */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

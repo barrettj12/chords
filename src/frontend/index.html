@@ -1,0 +1,299 @@
+<!-- TODO delete this -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jordy's Chordies - Guitar Chord Sheets</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <a href="/" class="logo">
+                🎵 Jordy's Chordies
+            </a>
+            <div class="search-container">
+                <input type="text" class="search-box" placeholder="Search artists or songs..." id="search-box">
+                <div class="search-suggestions" id="search-suggestions"></div>
+            </div>
+        </div>
+    </header>
+
+    <main class="main-content">
+        <div class="hero-section">
+            <h1 class="page-title">Welcome to Jordy's Chordies</h1>
+            <p style="text-align: center; font-size: 1.2rem; color: #718096; margin-bottom: 2rem;">
+                Your go-to destination for guitar chord sheets and tabs
+            </p>
+            
+            <div style="display: flex; justify-content: center; gap: 1rem; flex-wrap: wrap; margin-bottom: 3rem;">
+                <a href="artists.html" class="btn">Browse Artists</a>
+                <button class="btn btn-secondary" id="random-song">Random Song</button>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; margin-bottom: 3rem;">
+                <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;">
+                    <h3 style="font-size: 2rem; color: #667eea; margin-bottom: 0.5rem;" id="artist-count">200+</h3>
+                    <p style="color: #718096;">Artists</p>
+                </div>
+                <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;">
+                    <h3 style="font-size: 2rem; color: #667eea; margin-bottom: 0.5rem;" id="song-count">1000+</h3>
+                    <p style="color: #718096;">Songs</p>
+                </div>
+                <div style="background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); text-align: center;">
+                    <h3 style="font-size: 2rem; color: #667eea; margin-bottom: 0.5rem;" id="chord-count">5000+</h3>
+                    <p style="color: #718096;">Chords</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="featured-section">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #2d3748;">Featured Artists</h2>
+            <div class="artist-grid" id="featured-artists">
+                <!-- Featured artists will be populated by JavaScript -->
+            </div>
+        </div>
+
+        <div class="recent-section" style="margin-top: 3rem;">
+            <h2 style="text-align: center; margin-bottom: 2rem; color: #2d3748;">Recently Added</h2>
+            <div style="background: white; border-radius: 15px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); padding: 2rem;">
+                <div id="recent-songs">
+                    <!-- Recent songs will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">Loading...</div>
+        <div class="error" id="error" style="display: none;"></div>
+    </main>
+
+    <footer class="footer">
+        <div class="footer-content">
+            <p>&copy; 2025 Jordy's Chordies. All rights reserved.</p>
+            <p>
+                <a href="https://github.com/barrettj12/chords" target="_blank">
+                    View on GitHub
+                </a>
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Data
+        let featuredArtists = [];
+        let recentSongs = [];
+        let stats = { artists: 0, songs: 0, chords: 0 };
+        
+        // DOM elements
+        const searchBox = document.getElementById('search-box');
+        const searchSuggestions = document.getElementById('search-suggestions');
+        const randomSongBtn = document.getElementById('random-song');
+        const featuredArtistsContainer = document.getElementById('featured-artists');
+        const recentSongsContainer = document.getElementById('recent-songs');
+        const artistCount = document.getElementById('artist-count');
+        const songCount = document.getElementById('song-count');
+        const chordCount = document.getElementById('chord-count');
+        const loading = document.getElementById('loading');
+        const error = document.getElementById('error');
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            loadHomePageData();
+            setupSearch();
+            setupRandomSong();
+        });
+
+        // Load homepage data
+        async function loadHomePageData() {
+            try {
+                // Replace with actual API calls
+                // const statsResponse = await fetch('/api/stats');
+                // const featuredResponse = await fetch('/api/featured');
+                // const recentResponse = await fetch('/api/recent');
+                
+                // Placeholder data
+                stats = {
+                    artists: 245,
+                    songs: 1247,
+                    chords: 5892
+                };
+                
+                featuredArtists = [
+                    { name: "The Beatles", songCount: 45 },
+                    { name: "Queen", songCount: 31 },
+                    { name: "Pink Floyd", songCount: 28 },
+                    { name: "Led Zeppelin", songCount: 25 },
+                    { name: "The Rolling Stones", songCount: 24 },
+                    { name: "Bob Dylan", songCount: 23 },
+                    { name: "Green Day", songCount: 22 },
+                    { name: "Radiohead", songCount: 20 }
+                ];
+                
+                recentSongs = [
+                    { title: "Bohemian Rhapsody", artist: "Queen", addedDate: "2025-07-08" },
+                    { title: "Stairway to Heaven", artist: "Led Zeppelin", addedDate: "2025-07-07" },
+                    { title: "Hotel California", artist: "Eagles", addedDate: "2025-07-06" },
+                    { title: "Imagine", artist: "John Lennon", addedDate: "2025-07-05" },
+                    { title: "Sweet Child O' Mine", artist: "Guns N' Roses", addedDate: "2025-07-04" }
+                ];
+                
+                updateStats();
+                renderFeaturedArtists();
+                renderRecentSongs();
+                loading.style.display = 'none';
+            } catch (err) {
+                showError('Failed to load data. Please try again.');
+                loading.style.display = 'none';
+            }
+        }
+
+        // Update stats display
+        function updateStats() {
+            artistCount.textContent = stats.artists + '+';
+            songCount.textContent = stats.songs + '+';
+            chordCount.textContent = stats.chords + '+';
+        }
+
+        // Render featured artists
+        function renderFeaturedArtists() {
+            featuredArtistsContainer.innerHTML = '';
+            
+            featuredArtists.forEach(artist => {
+                const card = document.createElement('a');
+                card.href = `artist.html?name=${encodeURIComponent(artist.name)}`;
+                card.className = 'artist-card fade-in';
+                card.innerHTML = `
+                    <div class="artist-name">${artist.name}</div>
+                    <div class="artist-song-count">${artist.songCount} songs</div>
+                `;
+                featuredArtistsContainer.appendChild(card);
+            });
+        }
+
+        // Render recent songs
+        function renderRecentSongs() {
+            recentSongsContainer.innerHTML = '';
+            
+            recentSongs.forEach(song => {
+                const songItem = document.createElement('div');
+                songItem.className = 'song-item fade-in';
+                
+                const songLink = document.createElement('a');
+                songLink.href = `song.html?artist=${encodeURIComponent(song.artist)}&song=${encodeURIComponent(song.title)}`;
+                songLink.className = 'song-link';
+                songLink.innerHTML = `
+                    <strong>${song.title}</strong><br>
+                    <small>by ${song.artist}</small>
+                `;
+                
+                const songMeta = document.createElement('div');
+                songMeta.className = 'song-meta';
+                songMeta.textContent = formatDate(song.addedDate);
+                
+                songItem.appendChild(songLink);
+                songItem.appendChild(songMeta);
+                recentSongsContainer.appendChild(songItem);
+            });
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffTime = Math.abs(now - date);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays === 1) return 'Yesterday';
+            if (diffDays < 7) return `${diffDays} days ago`;
+            return date.toLocaleDateString();
+        }
+
+        // Setup search functionality
+        function setupSearch() {
+            let searchTimeout;
+            
+            searchBox.addEventListener('input', function(e) {
+                clearTimeout(searchTimeout);
+                const query = e.target.value.trim();
+                
+                if (query.length === 0) {
+                    hideSuggestions();
+                    return;
+                }
+                
+                searchTimeout = setTimeout(() => {
+                    if (query.length >= 2) {
+                        showSuggestions(query);
+                    }
+                }, 150);
+            });
+            
+            searchBox.addEventListener('focus', function() {
+                if (searchBox.value.trim().length >= 2) {
+                    showSuggestions(searchBox.value.trim());
+                }
+            });
+            
+            document.addEventListener('click', function(e) {
+                if (!searchBox.contains(e.target) && !searchSuggestions.contains(e.target)) {
+                    hideSuggestions();
+                }
+            });
+        }
+
+        // Show search suggestions
+        function showSuggestions(query) {
+            const lowercaseQuery = query.toLowerCase();
+            const artistSuggestions = featuredArtists
+                .filter(artist => artist.name.toLowerCase().includes(lowercaseQuery))
+                .slice(0, 4);
+            
+            const songSuggestions = recentSongs
+                .filter(song => song.title.toLowerCase().includes(lowercaseQuery) || 
+                              song.artist.toLowerCase().includes(lowercaseQuery))
+                .slice(0, 4);
+            
+            const allSuggestions = [...artistSuggestions, ...songSuggestions];
+            
+            if (allSuggestions.length === 0) {
+                hideSuggestions();
+                return;
+            }
+            
+            searchSuggestions.innerHTML = '';
+            
+            // Add artist suggestions
+            artistSuggestions.forEach(artist => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.innerHTML = `<strong>${artist.name}</strong><br><small>Artist</small>`;
+                item.onclick = () => {
+                    window.location.href = `artist.html?name=${encodeURIComponent(artist.name)}`;
+                };
+                searchSuggestions.appendChild(item);
+            });
+            
+            // Add song suggestions
+            songSuggestions.forEach(song => {
+                const item = document.createElement('div');
+                item.className = 'suggestion-item';
+                item.innerHTML = `<strong>${song.title}</strong><br><small>by ${song.artist}</small>`;
+                item.onclick = () => {
+                    window.location.href = `song.html?artist=${encodeURIComponent(song.artist)}&song=${encodeURIComponent(song.title)}`;
+                };
+                searchSuggestions.appendChild(item);
+            });
+            
+            searchSuggestions.classList.add('show');
+        }
+
+        // Hide search suggestions
+        function hideSuggestions() {
+            searchSuggestions.classList.remove('show');
+        }
+    </script>
+</body>
+</html>
