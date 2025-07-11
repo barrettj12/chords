@@ -52,6 +52,9 @@ func (f *Frontend) registerHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/c/style.css", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "src/frontend/style.css")
 	})
+	mux.HandleFunc("/c/search.js", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "src/frontend/search.js")
+	})
 	mux.HandleFunc("/c/artists", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "src/frontend/artists.html")
 	})
