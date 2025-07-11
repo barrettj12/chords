@@ -1,300 +1,248 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Song - Jordy's Chordies</title>
-    <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Song - Jordy's Chordies</title>
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header class="header">
-        <div class="header-content">
-            <a href="/c/artists" class="logo">
-                🎵 Jordy's Chordies
-            </a>
-            <div class="search-container">
-                <input type="text" class="search-box" placeholder="Search artists or songs..." id="search-box">
-                <div class="search-suggestions" id="search-suggestions"></div>
-            </div>
-        </div>
-    </header>
+  <header class="header">
+    <div class="header-content">
+      <a href="/c/artists" class="logo">
+        🎵 Jordy's Chordies
+      </a>
+      <div class="search-container">
+        <input type="text" class="search-box" placeholder="Search artists or songs..." id="search-box">
+        <div class="search-suggestions" id="search-suggestions"></div>
+      </div>
+    </div>
+  </header>
 
-    <main class="main-content">
-        <div class="song-header">
-            <h1 class="song-title" id="song-title">Loading...</h1>
-            <div class="song-artist" id="song-artist">Loading...</div>
-            
-            <div class="song-controls">
-                <a href="#" class="btn btn-secondary" id="back-btn">← Back to Artist</a>
-                
-                <div class="transpose-controls">
-                    <button class="transpose-btn" id="transpose-down">♭</button>
-                    <div class="current-key" id="current-key">Original Key</div>
-                    <button class="transpose-btn" id="transpose-up">♯</button>
-                </div>
-            </div>
-        </div>
-
-        <div class="chord-sheet">
-            <pre class="chord-content" id="chord-content">Loading chords...</pre>
-        </div>
-
-        <div class="loading" id="loading">Loading song...</div>
-        <div class="error" id="error" style="display: none;"></div>
-    </main>
-
-    <footer class="footer">
-        <div class="footer-content">
-            <p>&copy; 2025 Jordy's Chordies. All rights reserved.</p>
-            <p>
-                <a href="https://github.com/barrettj12/chords" target="_blank">
-                    View on GitHub
-                </a>
-            </p>
-        </div>
-    </footer>
-
-    <script>
-        // Song data
-        let songData = {};
-        let originalChords = '';
-        let currentTransposition = 0;
+  <main class="main-content">
+    <div class="song-header">
+      <h1 class="song-title" id="song-title">Loading...</h1>
+      <div class="song-artist" id="song-artist">Loading...</div>
+      
+      <div class="song-controls">
+        <a href="#" class="btn btn-secondary" id="back-btn">← Back to Artist</a>
         
-        // DOM elements
-        const searchBox = document.getElementById('search-box');
-        const searchSuggestions = document.getElementById('search-suggestions');
-        const songTitle = document.getElementById('song-title');
-        const songArtist = document.getElementById('song-artist');
-        const backBtn = document.getElementById('back-btn');
-        const transposeDown = document.getElementById('transpose-down');
-        const transposeUp = document.getElementById('transpose-up');
-        const currentKey = document.getElementById('current-key');
-        const chordContent = document.getElementById('chord-content');
-        const loading = document.getElementById('loading');
-        const error = document.getElementById('error');
+        <div class="transpose-controls">
+          <button class="transpose-btn" id="transpose-down">♭</button>
+          <div class="current-key" id="current-key">Original Key</div>
+          <button class="transpose-btn" id="transpose-up">♯</button>
+        </div>
+      </div>
+    </div>
 
-        // Chord progression for transposition
-        const chordProgression = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-        const chordMap = {
-            'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'F': 5, 
-            'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11
-        };
+    <div class="chord-sheet">
+      <pre class="chord-content" id="chord-content">Loading chords...</pre>
+    </div>
 
-        // Initialize page
-        document.addEventListener('DOMContentLoaded', function() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const artist = urlParams.get('artist');
-            const song = urlParams.get('song');
-            
-            if (artist && song) {
-                loadSongChords(artist, song);
-            } else {
-                showError('Artist or song not specified');
-                loading.style.display = 'none';
-            }
-            
-            setupSearch();
-            setupTransposeControls();
-        });
+    <div class="loading" id="loading">Loading song...</div>
+    <div class="error" id="error" style="display: none;"></div>
+  </main>
 
-        // Load song chords from API (placeholder function)
-        async function loadSongChords(artist, song) {
-            try {
-                // Replace with actual API call
-                // const response = await fetch(`/api/songs/${encodeURIComponent(artist)}/${encodeURIComponent(song)}`);
-                // const data = await response.json();
-                
-                // Placeholder data
-                songData = {
-                    title: song,
-                    artist: artist,
-                    originalKey: 'G',
-                    chords: `Verse 1:
-G                    D                 Em              C
-Yesterday, all my troubles seemed so far away
-G                    D                   Em       C
-Now it looks as though they're here to stay
-Em              A              C        G
-Oh, I believe in yesterday
+  <footer class="footer">
+    <div class="footer-content">
+      <p>&copy; 2025 Jordy's Chordies. All rights reserved.</p>
+      <p>
+        <a href="https://github.com/barrettj12/chords" target="_blank">
+          View on GitHub
+        </a>
+      </p>
+    </div>
+  </footer>
 
-Verse 2:
-G                    D                 Em              C
-Suddenly, I'm not half the man I used to be
-G                    D                   Em       C
-There's a shadow hanging over me
-Em              A              C        G
-Oh, yesterday came suddenly
+  <script>
+    // Song data
+    let songData = {};
+    let originalChords = '';
+    let currentTransposition = 0;
+    
+    // DOM elements
+    const searchBox = document.getElementById('search-box');
+    const searchSuggestions = document.getElementById('search-suggestions');
+    const songTitle = document.getElementById('song-title');
+    const songArtist = document.getElementById('song-artist');
+    const backBtn = document.getElementById('back-btn');
+    const transposeDown = document.getElementById('transpose-down');
+    const transposeUp = document.getElementById('transpose-up');
+    const currentKey = document.getElementById('current-key');
+    const chordContent = document.getElementById('chord-content');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
 
-Chorus:
-Em        A        C        G
-Why she had to go
-Em        A        C        G
-I don't know, she wouldn't say
-Em        A        C        G
-I said something wrong
-Em        A        C        G
-Now I long for yesterday
+    // Chord progression for transposition
+    const chordProgression = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+    const chordMap = {
+      'C': 0, 'C#': 1, 'Db': 1, 'D': 2, 'D#': 3, 'Eb': 3, 'E': 4, 'F': 5, 
+      'F#': 6, 'Gb': 6, 'G': 7, 'G#': 8, 'Ab': 8, 'A': 9, 'A#': 10, 'Bb': 10, 'B': 11
+    };
 
-Verse 3:
-G                    D                 Em              C
-Yesterday, love was such an easy game to play
-G                    D                   Em       C
-Now I need a place to hide away
-Em              A              C        G
-Oh, I believe in yesterday
+    // Initialize page
+    document.addEventListener('DOMContentLoaded', function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const id = urlParams.get('id');
+      
+      if (id) {
+        loadSongChords(id);
+      } else {
+        showError('Artist or song not specified');
+        loading.style.display = 'none';
+      }
+      
+      setupSearch();
+      setupTransposeControls();
+    });
 
-Outro:
-Em        A        C        G
-Why she had to go
-Em        A        C        G
-I don't know, she wouldn't say
-Em        A        C        G
-I said something wrong
-Em        A        C        G
-Now I long for yesterday`
-                };
-                
-                originalChords = songData.chords;
-                updateSongInfo();
-                updateChordDisplay();
-                loading.style.display = 'none';
-            } catch (err) {
-                showError('Failed to load song chords. Please try again.');
-                loading.style.display = 'none';
-            }
+    // Load song chords from API (placeholder function)
+    async function loadSongChords(id) {
+      try {
+        const chordsResp = await fetch(`/api/v0/chords?id=${encodeURIComponent(id)}`);
+        const chords = await chordsResp.text();
+        updateChordDisplay(chords);
+        
+        const dataResp = await fetch(`/api/v0/songs?id=${encodeURIComponent(id)}`);
+        const songData = await dataResp.json();
+        console.log(songData);
+        updateSongInfo(songData[0]);
+        loading.style.display = 'none';
+      } catch (err) {
+        console.log(err)
+        showError('Failed to load song chords. Please try again.');
+        loading.style.display = 'none';
+      }
+    }
+
+    // Update song information
+    function updateSongInfo(songData) {
+      songTitle.textContent = songData.name;
+      songArtist.textContent = `by ${songData.artist}`;
+      document.title = `${songData.name} - ${songData.artist} - Jordy's Chordies`;
+      
+      // Update back button
+      backBtn.href = `/c/songs?artist=${encodeURIComponent(songData.artist)}`;
+      
+      // Update current key display
+      updateKeyDisplay();
+    }
+
+    // Update key display
+    function updateKeyDisplay() {
+      const originalKeyIndex = chordMap[songData.originalKey] || 0;
+      const newKeyIndex = (originalKeyIndex + currentTransposition + 12) % 12;
+      const newKey = chordProgression[newKeyIndex];
+      
+      if (currentTransposition === 0) {
+        currentKey.textContent = `${songData.originalKey} (Original)`;
+      } else {
+        const direction = currentTransposition > 0 ? '+' : '';
+        currentKey.textContent = `${newKey} (${direction}${currentTransposition})`;
+      }
+    }
+
+    // Update chord display
+    function updateChordDisplay(chords) {
+      // TODO transpose chords
+      chordContent.textContent = chords;
+    }
+
+    // Transpose chords
+    function transposeChords(chords, semitones) {
+      // Regular expression to match chord names
+      const chordRegex = /\b([A-G](?:#|b)?(?:m|maj|min|aug|dim|sus|add|[0-9])*)\b/g;
+      
+      return chords.replace(chordRegex, (match) => {
+        return transposeChord(match, semitones);
+      });
+    }
+
+    // Transpose individual chord
+    function transposeChord(chord, semitones) {
+      // Extract the root note (first 1-2 characters)
+      const rootMatch = chord.match(/^([A-G](?:#|b)?)/);
+      if (!rootMatch) return chord;
+      
+      const root = rootMatch[1];
+      const suffix = chord.slice(root.length);
+      
+      // Find the root note index
+      const rootIndex = chordMap[root];
+      if (rootIndex === undefined) return chord;
+      
+      // Calculate new root index
+      const newRootIndex = (rootIndex + semitones + 12) % 12;
+      const newRoot = chordProgression[newRootIndex];
+      
+      return newRoot + suffix;
+    }
+
+    // Setup transpose controls
+    function setupTransposeControls() {
+      transposeDown.addEventListener('click', () => {
+        currentTransposition = Math.max(currentTransposition - 1, -11);
+        updateKeyDisplay();
+        updateChordDisplay();
+      });
+      
+      transposeUp.addEventListener('click', () => {
+        currentTransposition = Math.min(currentTransposition + 1, 11);
+        updateKeyDisplay();
+        updateChordDisplay();
+      });
+    }
+
+    // Setup search functionality
+    function setupSearch() {
+      let searchTimeout;
+      
+      searchBox.addEventListener('input', function(e) {
+        clearTimeout(searchTimeout);
+        const query = e.target.value.trim();
+        
+        if (query.length === 0) {
+          hideSuggestions();
+          return;
         }
-
-        // Update song information
-        function updateSongInfo() {
-            songTitle.textContent = songData.title;
-            songArtist.textContent = `by ${songData.artist}`;
-            document.title = `${songData.title} - ${songData.artist} - Jordy's Chordies`;
-            
-            // Update back button
-            backBtn.href = `artist.html?name=${encodeURIComponent(songData.artist)}`;
-            
-            // Update current key display
-            updateKeyDisplay();
+        
+        searchTimeout = setTimeout(() => {
+          if (query.length >= 2) {
+            showSuggestions(query);
+          }
+        }, 150);
+      });
+      
+      searchBox.addEventListener('focus', function() {
+        if (searchBox.value.trim().length >= 2) {
+          showSuggestions(searchBox.value.trim());
         }
-
-        // Update key display
-        function updateKeyDisplay() {
-            const originalKeyIndex = chordMap[songData.originalKey] || 0;
-            const newKeyIndex = (originalKeyIndex + currentTransposition + 12) % 12;
-            const newKey = chordProgression[newKeyIndex];
-            
-            if (currentTransposition === 0) {
-                currentKey.textContent = `${songData.originalKey} (Original)`;
-            } else {
-                const direction = currentTransposition > 0 ? '+' : '';
-                currentKey.textContent = `${newKey} (${direction}${currentTransposition})`;
-            }
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!searchBox.contains(e.target) && !searchSuggestions.contains(e.target)) {
+          hideSuggestions();
         }
+      });
+    }
 
-        // Update chord display
-        function updateChordDisplay() {
-            if (currentTransposition === 0) {
-                chordContent.textContent = originalChords;
-            } else {
-                chordContent.textContent = transposeChords(originalChords, currentTransposition);
-            }
-        }
+    // Show search suggestions (placeholder)
+    function showSuggestions(query) {
+      // This would normally search through all artists/songs
+      // For now, just hide suggestions since we don't have the full data
+      hideSuggestions();
+    }
 
-        // Transpose chords
-        function transposeChords(chords, semitones) {
-            // Regular expression to match chord names
-            const chordRegex = /\b([A-G](?:#|b)?(?:m|maj|min|aug|dim|sus|add|[0-9])*)\b/g;
-            
-            return chords.replace(chordRegex, (match) => {
-                return transposeChord(match, semitones);
-            });
-        }
+    // Hide search suggestions
+    function hideSuggestions() {
+      searchSuggestions.classList.remove('show');
+    }
 
-        // Transpose individual chord
-        function transposeChord(chord, semitones) {
-            // Extract the root note (first 1-2 characters)
-            const rootMatch = chord.match(/^([A-G](?:#|b)?)/);
-            if (!rootMatch) return chord;
-            
-            const root = rootMatch[1];
-            const suffix = chord.slice(root.length);
-            
-            // Find the root note index
-            const rootIndex = chordMap[root];
-            if (rootIndex === undefined) return chord;
-            
-            // Calculate new root index
-            const newRootIndex = (rootIndex + semitones + 12) % 12;
-            const newRoot = chordProgression[newRootIndex];
-            
-            return newRoot + suffix;
-        }
-
-        // Setup transpose controls
-        function setupTransposeControls() {
-            transposeDown.addEventListener('click', () => {
-                currentTransposition = Math.max(currentTransposition - 1, -11);
-                updateKeyDisplay();
-                updateChordDisplay();
-            });
-            
-            transposeUp.addEventListener('click', () => {
-                currentTransposition = Math.min(currentTransposition + 1, 11);
-                updateKeyDisplay();
-                updateChordDisplay();
-            });
-        }
-
-        // Setup search functionality
-        function setupSearch() {
-            let searchTimeout;
-            
-            searchBox.addEventListener('input', function(e) {
-                clearTimeout(searchTimeout);
-                const query = e.target.value.trim();
-                
-                if (query.length === 0) {
-                    hideSuggestions();
-                    return;
-                }
-                
-                searchTimeout = setTimeout(() => {
-                    if (query.length >= 2) {
-                        showSuggestions(query);
-                    }
-                }, 150);
-            });
-            
-            searchBox.addEventListener('focus', function() {
-                if (searchBox.value.trim().length >= 2) {
-                    showSuggestions(searchBox.value.trim());
-                }
-            });
-            
-            document.addEventListener('click', function(e) {
-                if (!searchBox.contains(e.target) && !searchSuggestions.contains(e.target)) {
-                    hideSuggestions();
-                }
-            });
-        }
-
-        // Show search suggestions (placeholder)
-        function showSuggestions(query) {
-            // This would normally search through all artists/songs
-            // For now, just hide suggestions since we don't have the full data
-            hideSuggestions();
-        }
-
-        // Hide search suggestions
-        function hideSuggestions() {
-            searchSuggestions.classList.remove('show');
-        }
-
-        // Show error message
-        function showError(message) {
-            error.textContent = message;
-            error.style.display = 'block';
-        }
-    </script>
+    // Show error message
+    function showError(message) {
+      error.textContent = message;
+      error.style.display = 'block';
+    }
+  </script>
 </body>
 </html>
